@@ -6,5 +6,7 @@ export const metadata: Metadata = {
 };
 
 export default function MaterialsPage() {
-  return <></>;
+  return <>
+    <h1>Materials</h1>
+  </>;
 }
