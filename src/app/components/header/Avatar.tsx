@@ -13,7 +13,7 @@ export default function Avatar() {
       </button>
 
       {/* Logo */}
-      <Link href="/" className="flex items-center">
+      <Link href="/profile" className="flex items-center">
         <Image
           src="/image/logo.svg"
           alt="Bach Khoa University Logo"
