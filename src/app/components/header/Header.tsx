@@ -35,6 +35,9 @@ export default function Header() {
     //   link: "/admin/program",
     // },
   ];
+
+  const isLoggedIn = true; // Giả lập trạng thái đăng nhập
+  
   return (
     <>
       <header className="bg-[#0C54E4] flex items-center px-6 h-16">
@@ -63,9 +66,22 @@ export default function Header() {
             </nav>
           </div>
 
-          <div className="flex items-center justify-center gap-3">
+          {/* <div className="flex items-center justify-center gap-3">
             <Avatar/>
+          </div> */}
+          <div className="flex items-center justify-center gap-4">
+            {isLoggedIn ? (
+              <Avatar />
+            ) : (
+              <>
+              <Link
+                href="/login"
+                className="px-5 py-2 bg-[#1e3a8a] text-white font-bold rounded-md hover:bg-[#254a9c] transition-colors text-sm"
+              >Login</Link>
+              </>
+            )}
           </div>
+          
         </div>
       </header>
     </>
