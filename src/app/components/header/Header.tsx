@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeaderItem } from "./HeaderItem";
 import Avatar from "./Avatar";
+import ReportDropdown from "@/app/components/button/ReportDropdown";
 
 export default function Header() {
   const menu = [
@@ -21,10 +22,10 @@ export default function Header() {
       title: "Material",
       link: "/materials",
     },
-    // {
-    //   title: "View Report",
-    //   link: "/admin/report",
-    // },
+    {
+      title: "View Report",
+      link: "/admin/report",
+    },
     // {
     //   title: "User Management",
     //   link: "/admin/user-management",
@@ -54,7 +55,9 @@ export default function Header() {
             <nav className="h-full">
               <ul className="flex items-center h-full">
                 {menu.map((item, index) => (
-                  <HeaderItem item={item} key={index} />
+                  item.title === "View Report"
+                    ? <ReportDropdown key={index} />   
+                    : <HeaderItem item={item} key={index} />
                 ))}
               </ul>
             </nav>
