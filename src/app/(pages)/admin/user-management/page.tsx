@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import UserManagementClient from './UserManagementClient';
 
 export const metadata: Metadata = {
   title: "User Management",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function UserManagementPage() {
-  return <></>;
+  return <UserManagementClient />;
 }

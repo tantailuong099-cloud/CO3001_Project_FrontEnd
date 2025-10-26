@@ -3,12 +3,12 @@ import Link from "next/link";
 import { HeaderItem } from "./HeaderItem";
 import Avatar from "./Avatar";
 
-export default function Header() {
+export default function Admin_Header() {
   const menu = [
-    // {
-    //   title: "Home Page",
-    //   link: "/"
-    // },
+    {
+      title: "Home Page",
+      link: "/"
+    },
     // {
     //   title: "My Course",
     //   link: "/courses"
@@ -21,10 +21,10 @@ export default function Header() {
     //   title: "Material",
     //   link: "/materials",
     // },
-    {
-      title: "View Report",
-      link: "/admin/report",
-    },
+    // {
+    //   title: "View Report",
+    //   link: "/admin/report",
+    // },
     {
       title: "User Management",
       link: "/admin/user-management",
