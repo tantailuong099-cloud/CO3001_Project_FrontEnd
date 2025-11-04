@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import CreateProgramClient from './CreateProgramClient';
+import CreateProgramClient from "./CreateProgramClient";
 
 export const metadata: Metadata = {
   title: "Create Program",
