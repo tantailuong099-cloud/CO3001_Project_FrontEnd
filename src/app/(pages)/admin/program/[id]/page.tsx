@@ -28,10 +28,30 @@ const programs = [
     description:
       "This course provides foundational knowledge of computer networks, protocols, and communication models. Students will gain hands-on experience configuring and analyzing network systems.",
     sessions: [
-      { id: 1, date: "2025-03-01", topic: "Introduction to Networks", status: "Completed" },
-      { id: 2, date: "2025-03-08", topic: "Network Layers & Protocols", status: "Completed" },
-      { id: 3, date: "2025-03-15", topic: "IP Addressing & Subnetting", status: "Upcoming" },
-      { id: 4, date: "2025-03-22", topic: "Routing & Switching", status: "Upcoming" },
+      {
+        id: 1,
+        date: "2025-03-01",
+        topic: "Introduction to Networks",
+        status: "Completed",
+      },
+      {
+        id: 2,
+        date: "2025-03-08",
+        topic: "Network Layers & Protocols",
+        status: "Completed",
+      },
+      {
+        id: 3,
+        date: "2025-03-15",
+        topic: "IP Addressing & Subnetting",
+        status: "Upcoming",
+      },
+      {
+        id: 4,
+        date: "2025-03-22",
+        topic: "Routing & Switching",
+        status: "Upcoming",
+      },
     ],
   },
 ];
@@ -48,7 +68,9 @@ export default function ProgramDetailAdminPage({
   if (!program) return notFound();
 
   const heldSessions = program.sessions.filter((s) => s.status === "Completed");
-  const upcomingSessions = program.sessions.filter((s) => s.status === "Upcoming");
+  const upcomingSessions = program.sessions.filter(
+    (s) => s.status === "Upcoming"
+  );
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-6">
@@ -61,7 +83,10 @@ export default function ProgramDetailAdminPage({
       <ProgramSummary {...program} />
       <ProgramDescription description={program.description} />
       <ProgramSessionsTable title="Held Sessions" sessions={heldSessions} />
-      <ProgramSessionsTable title="Upcoming Sessions" sessions={upcomingSessions} />
+      <ProgramSessionsTable
+        title="Upcoming Sessions"
+        sessions={upcomingSessions}
+      />
     </div>
   );
 }
