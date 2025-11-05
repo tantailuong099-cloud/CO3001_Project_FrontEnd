@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import Search from "@/app/components/search/Search";
+import Search from "@/app/components/pages/search/Search";
 import { ChevronLeft, ChevronRight } from "lucide-react"; //new library
-
 
 export const metadata: Metadata = {
   title: "Materials Details",
@@ -57,9 +56,7 @@ export default function MaterialsDetailPage() {
             <li>
               Rotational motion and torque (a.k.a. “Physics with a twist”).
             </li>
-            <li>
-              Harmonic oscillations and waves that make the universe hum.
-            </li>
+            <li>Harmonic oscillations and waves that make the universe hum.</li>
           </ul>
         </div>
 
@@ -76,24 +73,24 @@ export default function MaterialsDetailPage() {
 
           {/* Preview thumbnails + pagination */}
           <div className="flex justify-center items-center w-full gap-2">
-      <div className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer">
-        <ChevronLeft size={18} strokeWidth={2} />
-      </div>
+            <div className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer">
+              <ChevronLeft size={18} strokeWidth={2} />
+            </div>
 
-      <div className="flex gap-1 overflow-hidden">
-        {[1, 2, 3, 4].map((n) => (
-          <img
-            key={n}
-            src="/image/demo_materials.png"
-            className="w-10 h-14 border border-gray-300 rounded-sm cursor-pointer hover:opacity-80"
-          />
-        ))}
-      </div>
+            <div className="flex gap-1 overflow-hidden">
+              {[1, 2, 3, 4].map((n) => (
+                <img
+                  key={n}
+                  src="/image/demo_materials.png"
+                  className="w-10 h-14 border border-gray-300 rounded-sm cursor-pointer hover:opacity-80"
+                />
+              ))}
+            </div>
 
-      <div className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer">
-        <ChevronRight size={18} strokeWidth={2} />
-      </div>
-    </div>
+            <div className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer">
+              <ChevronRight size={18} strokeWidth={2} />
+            </div>
+          </div>
         </div>
       </div>
 
