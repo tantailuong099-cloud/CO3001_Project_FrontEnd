@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import CourseSidebar from '@/app/components/pages/sidebar/CourseSideBar';
 
@@ -17,9 +18,9 @@ export default function CourseDetailLayout({
             return (
                 <div className="mt-4 flex space-x-2">
                     <Link href={`/courses/${id}`} className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-md shadow-sm">Document</Link>
-                    <button disabled className="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-md shadow-sm opacity-50 cursor-not-allowed">Manage</button>
+                    <Link href={`/courses/${id}/manage`} className="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100">Manage</Link>
                     <Link href={`/courses/${id}/feedback`} className="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100">Feedback</Link>
-                    <button disabled className="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-md shadow-sm opacity-50 cursor-not-allowed">Student Progress</button>
+                    <Link href={`/courses/${id}/student-progress`} className="px-4 py-2 text-sm font-semibold bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100">Student Progress</Link>
                 </div>
             );
         }
