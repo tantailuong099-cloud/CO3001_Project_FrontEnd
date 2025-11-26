@@ -1,15 +1,40 @@
-import { FaLock, FaCalendarAlt, FaBookOpen, FaBuilding } from "react-icons/fa";
+"use client";
 
-export default function ProgramCard1() {
+import { FaLock, FaCalendarAlt, FaBookOpen, FaBuilding } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+
+interface ProgramCard1Props {
+  courseId?: string;
+  courseName?: string;
+  credits?: number;
+  semester?: string;
+  department?: string;
+  duration?: string;
+}
+
+export default function ProgramCard1({
+  courseId = "CO2301",
+  courseName = "Computer Network",
+  credits = 4.0,
+  semester = "2 / 2025",
+  department = "Computer Science",
+  duration = "9 weeks"
+}: ProgramCard1Props) {
+  const router = useRouter();
+
+  const handleRegister = () => {
+    router.push(`/program/registered`);
+  };
+
   return (
     <div className="border border-gray-300 rounded-xl overflow-hidden bg-white shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between bg-gray-50 px-5 py-3 border-b border-gray-300">
         <h2 className="text-lg font-semibold text-gray-800">
-          CO2301 – Computer Network
+          {courseId} – {courseName}
         </h2>
         <div className="flex items-center space-x-2">
-          <span className="font-semibold text-gray-700">4.0 Credits</span>
+          <span className="font-semibold text-gray-700">{credits} Credits</span>
           <FaLock className="text-red-500" />
         </div>
       </div>
@@ -19,19 +44,19 @@ export default function ProgramCard1() {
         <div className="flex items-center space-x-2">
           <FaBookOpen className="text-blue-600" />
           <span>
-            <strong>Semester:</strong> <span className="text-blue-700">2 / 2025</span>
+            <strong>Semester:</strong> <span className="text-blue-700">{semester}</span>
           </span>
         </div>
         <div className="flex items-center space-x-2">
           <FaBuilding className="text-green-600" />
           <span>
-            <strong>Department:</strong> <span className="text-gray-800">Computer Science</span>
+            <strong>Department:</strong> <span className="text-gray-800">{department}</span>
           </span>
         </div>
         <div className="flex items-center space-x-2">
           <FaCalendarAlt className="text-orange-500" />
           <span>
-            <strong>Duration:</strong> <span className="text-gray-800">9 weeks</span>
+            <strong>Duration:</strong> <span className="text-gray-800">{duration}</span>
           </span>
         </div>
       </div>
@@ -107,7 +132,9 @@ export default function ProgramCard1() {
         {/* Footer */}
         <div className="flex justify-between items-center mt-5 text-sm text-gray-600 border-t pt-3">
           <span>Last updated: <strong>Oct 25, 2025</strong></span>
-          <button className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+          <button
+            onClick={handleRegister}
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
             Register for this course
           </button>
         </div>
