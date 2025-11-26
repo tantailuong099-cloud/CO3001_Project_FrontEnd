@@ -85,7 +85,7 @@ export default function ReportDetailPage() {
           <div className="flex items-center gap-3">
             <DepartmentDropdown />
             <SemesterDropdown />
-            <SubjectDropdown />
+            <SubjectDropdown label={""} />
           </div>
 
           {/* right: Generate Report */}
