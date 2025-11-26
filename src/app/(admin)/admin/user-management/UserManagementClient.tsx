@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -20,13 +21,44 @@ export default function UserManagementClient() {
 
  
   const users: User[] = [
+    // Students
     {
       id: '2351234',
       name: 'Lương Tấn Tài',
       major: 'Computer Science',
       type: 'student'
     },
-    
+    {
+      id: '2351235',
+      name: 'Nguyễn Văn An',
+      major: 'Software Engineering',
+      type: 'student'
+    },
+    {
+      id: '2351236',
+      name: 'Trần Thị Bình',
+      major: 'Information Technology',
+      type: 'student'
+    },
+    // Tutors
+    {
+      id: 'T001',
+      name: 'Dr. Phạm Minh Hoàng',
+      major: 'Computer Science',
+      type: 'tutor'
+    },
+    {
+      id: 'T002',
+      name: 'Dr. Lê Thị Hương',
+      major: 'Software Engineering',
+      type: 'tutor'
+    },
+    {
+      id: 'T003',
+      name: 'Dr. Võ Văn Khoa',
+      major: 'Data Science',
+      type: 'tutor'
+    },
   ];
 
   const filteredUsers = users.filter(
@@ -58,7 +90,11 @@ export default function UserManagementClient() {
           <div className="flex justify-between items-center mb-6">
             <div className="flex gap-8">
               <button
-                onClick={() => setActiveTab('student')}
+                onClick={() => {
+                  setActiveTab('student');
+                  setSearchText('');
+                  setCurrentPage(1);
+                }}
                 className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${
                   activeTab === 'student'
                     ? 'text-blue-600 border-blue-600'
@@ -68,7 +104,11 @@ export default function UserManagementClient() {
                 Student
               </button>
               <button
-                onClick={() => setActiveTab('tutor')}
+                onClick={() => {
+                  setActiveTab('tutor');
+                  setSearchText('');
+                  setCurrentPage(1);
+                }}
                 className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${
                   activeTab === 'tutor'
                     ? 'text-blue-600 border-blue-600'
@@ -83,7 +123,7 @@ export default function UserManagementClient() {
             <div className="relative w-96">
               <input
                 type="text"
-                placeholder="Hinted search text"
+                placeholder="Search by ID, name, or major"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -94,18 +134,24 @@ export default function UserManagementClient() {
 
           {/* User List */}
           <div className="space-y-3">
-            {filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                onDoubleClick={() => handleUserDoubleClick(user.id)}
-                className="flex items-center gap-4 p-4 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition-colors cursor-pointer"
-              >
-                <UserCircle className="w-8 h-8 text-blue-600" />
-                <span className="font-semibold text-gray-800 min-w-[80px]">{user.id}</span>
-                <span className="text-gray-700 flex-1">{user.name}</span>
-                <span className="text-gray-600">Major: {user.major}</span>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <div
+                  key={user.id}
+                  onDoubleClick={() => handleUserDoubleClick(user.id)}
+                  className="flex items-center gap-4 p-4 bg-cyan-50 hover:bg-cyan-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <UserCircle className="w-8 h-8 text-blue-600" />
+                  <span className="font-semibold text-gray-800 min-w-[80px]">{user.id}</span>
+                  <span className="text-gray-700 flex-1">{user.name}</span>
+                  <span className="text-gray-600">Major: {user.major}</span>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No {activeTab}s found
               </div>
-            ))}
+            )}
             
             {[...Array(Math.max(0, 8 - filteredUsers.length))].map((_, index) => (
               <div

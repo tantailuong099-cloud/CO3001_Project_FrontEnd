@@ -13,7 +13,7 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
   const userData = {
     name: 'LƯƠNG TẤN TÀI',
     id: userId,
-    role: 'Student',
+    role: 'Admin',
     email: 'luong.tan.tai@hcmut.edu.vn',
     phone: '0123456789',
     address: 'Ho Chi Minh City',
@@ -28,12 +28,12 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
       <div className="max-w-7xl mx-auto p-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-800">Profile page</h1>
-          <button
+          {/* <button
             onClick={() => router.push('/admin/user-management')}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded transition-colors"
           >
             Back to list
-          </button>
+          </button> */}
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-8">
