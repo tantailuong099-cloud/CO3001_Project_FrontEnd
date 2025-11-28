@@ -1,5 +1,5 @@
-import MaterialsCard from "@/app/components/card/MaterialsCard";
-import Search from "@/app/components/search/Search";
+import MaterialsCard from "@/app/components/pages/card/MaterialsCard";
+import Search from "@/app/components/pages/search/Search";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -18,15 +18,10 @@ export default function MaterialsPage() {
         </div>
         <div className="grid grid-cols-5 gap-6 mt-[30px]">
           {Array.from({ length: 16 }).map((_, index) => (
-            <MaterialsCard key={index}/>
+            <MaterialsCard key={index} />
           ))}
         </div>
       </div>
     </>
   );
 }
-
-
-
-
-

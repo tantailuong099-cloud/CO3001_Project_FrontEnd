@@ -1,5 +1,5 @@
-import ProgramCard1 from "@/app/components/card/ProgramCard_1";
-import Search from "@/app/components/search/Search";
+import ProgramCard1 from "@/app/components/pages/card/ProgramCard_1";
+import Search from "@/app/components/pages/search/Search";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function ProgramPage() {
-    return (
+  return (
     <>
       <div className="py-7 px-[30px]">
         <div className="flex flex-col items-center justify-center space-y-4">
@@ -18,11 +18,9 @@ export default function ProgramPage() {
         </div>
         <div className="grid grid-cols-1 gap-6 mt-[30px]">
           {Array.from({ length: 16 }).map((_, index) => (
-            <ProgramCard1 key={index}/>
+            <ProgramCard1 key={index} />
           ))}
         </div>
-
-
       </div>
     </>
   );
