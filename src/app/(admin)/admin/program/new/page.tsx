@@ -1,62 +1,126 @@
+// src/app/(admin)/admin/program/new/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, X } from "lucide-react";
+import Select from "react-select";
 
-// We can re-use the type, but define a new type for the form state
-type CourseStatus = "Ongoing" | "Upcoming" | "Inactive" | "Completed";
-type SessionType = "Online" | "Offline";
+type CourseStatus = "upcoming" | "registration" | "ongoing" | "completed";
 
-const initialFormData = {
-  code: "",
-  name: "",
-  credit: 3,
-  lecturer: "",
-  semester: "",
+interface Tutor {
+  _id: string;
+  name: string;
+  email: string;
+}
+
+interface CourseFormData {
+  courseCode: string;
+  courseName: string;
+  department: string;
+  description: string;
+  duration: string;
+  semester: string;
+  registrationStart: string;
+  registrationEnd: string;
+  courseStart: string;
+  courseEnd: string;
+  tutors: string[];
+  status: CourseStatus;
+}
+
+const initialFormData: CourseFormData = {
+  courseCode: "",
+  courseName: "",
   department: "",
-  startDate: "",
+  description: "",
   duration: "15 weeks",
-  sessionCode: "",
-  sessionType: "Offline" as SessionType,
-  location: "",
-  status: "Upcoming" as CourseStatus,
+  semester: "",
+  registrationStart: "",
+  registrationEnd: "",
+  courseStart: "",
+  courseEnd: "",
+  tutors: [],
+  status: "upcoming",
 };
 
 export default function AddNewCoursePage() {
   const router = useRouter();
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState<CourseFormData>(initialFormData);
+  const [tutorList, setTutorList] = useState<Tutor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  
+  // Fetch tutors
+  useEffect(() => {
+    async function fetchTutors() {
+      try {
+        console.log("Fetching tutors...");
+        const res = await fetch(`${BACKEND_URL}/api/user/Tutor`);
+        console.log("Fetch response:", res);
+        if (!res.ok) throw new Error("Failed to fetch tutors");
+        const data = await res.json();
+        setTutorList(data);  // <-- actually set the tutor list
+        console.log("Tutor data:", data);
+      } catch (err) {
+        console.error("Failed to fetch tutors:", err);
+      }
+    }
+    fetchTutors();
+  }, []);
+
+  
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleGoBack = () => {
-    router.push("/admin/program");
+  const handleTutorSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+    setFormData((prev) => ({ ...prev, tutors: selected }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const tutorOptions = tutorList.map((tutor) => ({
+    value: tutor._id,
+    label: `${tutor.name} (${tutor.email})`,
+  }));
+
+  // Handler for react-select
+  const handleTutorSelectChange = (selected: any) => {
+    setFormData({
+      ...formData,
+      tutors: selected ? selected.map((s: any) => s.value) : [],
+    });
+  };
+
+  const handleGoBack = () => router.push("/admin/program");
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.tutors.length) {
+      alert("Please select at least one tutor.");
+      return;
+    }
+
     setIsLoading(true);
-
-    // --- In a real app, you would send this data to your API ---
-    console.log("Submitting new course:", formData);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // You would typically show a success toast here
-      // For now, just log and redirect
-      console.log("Course added successfully!");
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/course/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error("Failed to create course");
+      alert("Course and class groups created successfully!");
       router.push("/admin/program");
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+      alert("Error creating course. Check console for details.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,234 +128,182 @@ export default function AddNewCoursePage() {
       {/* Header */}
       <div className="flex items-center justify-between gap-5 mb-8">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Add New Course
-          </h1>
-          <p className="text-gray-600 text-sm font-medium">
-            Admin / Courses / New
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Add New Course</h1>
+          <p className="text-gray-600 text-sm font-medium">Admin / Courses / New</p>
         </div>
         <button
           onClick={handleGoBack}
           className="flex items-center gap-2 bg-white text-gray-700 px-5 py-2.5 rounded-md hover:bg-gray-50 transition font-medium shadow-sm border border-gray-300"
         >
-          <ArrowLeft size={18} />
-          Back to List
+          <ArrowLeft size={18} /> Back to List
         </button>
       </div>
 
-      {/* Form Card */}
+      {/* Form */}
       <div className="bg-white shadow-lg rounded-xl border border-gray-200">
         <form onSubmit={handleSubmit}>
-          {/* Form Body */}
-          <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* Course Code */}
-              <div>
-                <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-                  Course Code
-                </label>
-                <input
-                  type="text"
-                  name="code"
-                  id="code"
-                  value={formData.code}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="e.g., CO2301"
-                />
-              </div>
+          <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Course Code */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course Code</label>
+              <input
+                type="text"
+                name="courseCode"
+                value={formData.courseCode}
+                onChange={handleChange}
+                required
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+                placeholder="CO3001"
+              />
+            </div>
 
-              {/* Course Name */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Course Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="e.g., Computer Network"
-                />
-              </div>
+            {/* Course Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course Name</label>
+              <input
+                type="text"
+                name="courseName"
+                value={formData.courseName}
+                onChange={handleChange}
+                required
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+                placeholder="Computer Networks"
+              />
+            </div>
 
-              {/* Department */}
-              <div>
-                <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <input
-                  type="text"
-                  name="department"
-                  id="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="e.g., Computer Science"
-                />
-              </div>
+            {/* Department */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <input
+                type="text"
+                name="department"
+                value={formData.department}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+                placeholder="Computer Science"
+              />
+            </div>
 
-              {/* Lecturer */}
-              <div>
-                <label htmlFor="lecturer" className="block text-sm font-medium text-gray-700 mb-1">
-                  Lecturer
-                </label>
-                <input
-                  type="text"
-                  name="lecturer"
-                  id="lecturer"
-                  value={formData.lecturer}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="e.g., Phạm Hồng Phát"
-                />
-              </div>
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+                placeholder="Brief description"
+              />
+            </div>
 
-              {/* Credits */}
-              <div>
-                <label htmlFor="credit" className="block text-sm font-medium text-gray-700 mb-1">
-                  Credits
-                </label>
-                <input
-                  type="number"
-                  name="credit"
-                  id="credit"
-                  value={formData.credit}
-                  onChange={handleChange}
-                  min="1"
-                  max="5"
-                  required
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+            {/* Semester */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+              <input
+                type="text"
+                name="semester"
+                value={formData.semester}
+                onChange={handleChange}
+                placeholder="2025 Spring"
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+              />
+            </div>
 
-              {/* Semester */}
-              <div>
-                <label htmlFor="semester" className="block text-sm font-medium text-gray-700 mb-1">
-                  Semester
-                </label>
-                <input
-                  type="text"
-                  name="semester"
-                  id="semester"
-                  value={formData.semester}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="e.g., 2 / 2025"
-                />
-              </div>
+            {/* Duration */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Duration</label>
+              <input
+                type="text"
+                name="duration"
+                value={formData.duration}
+                onChange={handleChange}
+                placeholder="15 weeks"
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+              />
+            </div>
 
-              {/* Start Date */}
-              <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  name="startDate"
-                  id="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                />
-              </div>
+            {/* Registration Start */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Registration Start</label>
+              <input
+                type="date"
+                name="registrationStart"
+                value={formData.registrationStart}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+              />
+            </div>
 
-              {/* Duration */}
-              <div>
-                <label htmlFor="duration" className="block text-sm font-medium text-gray-700 mb-1">
-                  Duration
-                </label>
-                <input
-                  type="text"
-                  name="duration"
-                  id="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="e.g., 15 weeks"
-                />
-              </div>
+            {/* Registration End */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Registration End</label>
+              <input
+                type="date"
+                name="registrationEnd"
+                value={formData.registrationEnd}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+              />
+            </div>
 
-              {/* Session Code */}
-              <div>
-                <label htmlFor="sessionCode" className="block text-sm font-medium text-gray-700 mb-1">
-                  Session Code
-                </label>
-                <input
-                  type="text"
-                  name="sessionCode"
-                  id="sessionCode"
-                  value={formData.sessionCode}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-30m shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="e.g., CC01"
-                />
-              </div>
-              
-              {/* Status */}
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  id="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="Upcoming">Upcoming</option>
-                  <option value="Ongoing">Ongoing</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-              </div>
+            {/* Course Start */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course Start</label>
+              <input
+                type="date"
+                name="courseStart"
+                value={formData.courseStart}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+              />
+            </div>
 
-              {/* Session Type */}
-              <div>
-                <label htmlFor="sessionType" className="block text-sm font-medium text-gray-700 mb-1">
-                  Session Type
-                </label>
-                <select
-                  name="sessionType"
-                  id="sessionType"
-                  value={formData.sessionType}
-                  onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                >
-                  <option value="Offline">Offline</option>
-                  <option value="Online">Online</option>
-                </select>
-              </div>
+            {/* Course End */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Course End</label>
+              <input
+                type="date"
+                name="courseEnd"
+                value={formData.courseEnd}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+              />
+            </div>
 
-              {/* Location (Conditional) */}
-              {formData.sessionType === "Offline" && (
-                <div>
-                  <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    name="location"
-                    id="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="e.g., H1, BKHCM"
-                  />
-                </div>
-              )}
+            {/* Tutors Multi-Select */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tutors (one class group per tutor)
+              </label>
+              <Select
+                isMulti
+                options={tutorOptions}
+                value={tutorOptions.filter((opt) => formData.tutors.includes(opt.value))}
+                onChange={handleTutorSelectChange}
+                className="basic-multi-select text-gray-700"
+                classNamePrefix="select"
+                placeholder="Select tutors..."
+              />
+            </div>
 
+            {/* Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-gray-700"
+              >
+                <option value="upcoming">Upcoming</option>
+                <option value="registration">Registration</option>
+                <option value="ongoing">Ongoing</option>
+                <option value="completed">Completed</option>
+              </select>
             </div>
           </div>
 
-          {/* Form Footer */}
+          {/* Footer */}
           <div className="bg-gray-50 px-8 py-4 rounded-b-xl flex justify-end gap-3">
             <button
               type="button"
@@ -299,16 +311,14 @@ export default function AddNewCoursePage() {
               disabled={isLoading}
               className="flex items-center gap-2 bg-white text-gray-700 px-5 py-2.5 rounded-md hover:bg-gray-50 transition font-medium shadow-sm border border-gray-300 disabled:opacity-50"
             >
-              <X size={18} />
-              Cancel
+              <X size={18} /> Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
               className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-md hover:bg-blue-700 transition font-medium shadow-sm disabled:opacity-50 disabled:bg-blue-400"
             >
-              <Save size={18} />
-              {isLoading ? "Saving..." : "Save Course"}
+              <Save size={18} /> {isLoading ? "Saving..." : "Save Course"}
             </button>
           </div>
         </form>
@@ -316,4 +326,3 @@ export default function AddNewCoursePage() {
     </div>
   );
 }
-
