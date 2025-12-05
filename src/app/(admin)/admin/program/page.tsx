@@ -336,7 +336,11 @@ export default function ProgramAdminPage() {
       {/* Delete modal */}
       {isModalOpen && targetId && (
         <DeleteConfirmationModal
-          itemName={registrations.find((c) => c._id === targetId)?.courseName || "this class group"}
+          itemName={
+            registrations.find(
+              (r) => `${r.courseCode}_${r.classGroup}` === targetId
+            )?.courseName || "this class group"
+          }
           onConfirm={confirmDelete}
           onCancel={closeDeleteModal}
           isLoading={isLoading}
