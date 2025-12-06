@@ -12,7 +12,8 @@ const userRole = 'Tutor'; // đổi role để check page tương ưng
 
 const studentCoursesData = {
   "Học Kỳ 1 / 2025 - 2026": [
-    { id: "1", code: "CO2013", name: "Database System", instructor: "VÕ THỊ NGỌC CHÂU", classCodes: ["CLC_HK251", "CC01", "CC02", "CC03", "CC04"], department: "Hệ Thống Thông Tin" },
+    {
+      id: "692329879a10367a75462fbf", code: "CO2013", name: "Database System", instructor: "VÕ THỊ NGỌC CHÂU", classCodes: ["CLC_HK251", "CC01", "CC02", "CC03", "CC04"], department: "Hệ Thống Thông Tin" },
     { id: "2", code: "CO3001", name: "Software Engineering", instructor: "Trần Tường Tuấn Phát", classCodes: ["CLC_HK251", "CC01", "CC02"], department: "Công Nghệ Phần Mềm" },
     { id: "3", code: "CO3001", name: "Software Engineering", instructor: "Trần Tường Tuấn Phát", classCodes: ["CLC_HK251", "CC01", "CC02"], department: "Công Nghệ Phần Mềm" },
     { id: "4", code: "CO3001", name: "Software Engineering", instructor: "Trần Tường Tuấn Phát", classCodes: ["CLC_HK251", "CC01", "CC02"], department: "Công Nghệ Phần Mềm" },
@@ -32,7 +33,8 @@ const studentCoursesData = {
 
 const tutorCoursesData = {
   "Học Kỳ 1 / 2025 - 2026": [
-    { id: "101", code: "CO3001", name: "Calculus 1", instructor: "Trần Tường Tuấn Phát", classCodes: ["CLC_HK251", "CC01", "CC02"], department: "Khoa Khoa học Ứng dụng" },
+    {
+      id: "692329879a10367a75462fbf", code: "CO3001", name: "Calculus 1", instructor: "Trần Tường Tuấn Phát", classCodes: ["CLC_HK251", "CC01", "CC02"], department: "Khoa Khoa học Ứng dụng" },
     { id: "102", code: "CO3001", name: "Calculus 1", instructor: "Trần Tường Tuấn Phát", classCodes: ["CLC", "CC05", "CC08"], department: "Khoa Khoa học Ứng dụng" },
     { id: "103", code: "CO3001", name: "Giải tích 1", instructor: "Trần Tường Tuấn Phát", classCodes: ["CQ", "L01", "L02"], department: "Khoa Khoa học Ứng dụng" },
     { id: "104", code: "CO3001", name: "Giải tích 1", instructor: "Trần Tường Tuấn Phát", classCodes: ["CQ", "L01", "L02"], department: "Khoa Khoa học Ứng dụng" },
