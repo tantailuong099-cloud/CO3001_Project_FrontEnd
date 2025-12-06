@@ -61,11 +61,11 @@ export const reportApi = {
   getStackedFacilityUsage: (params?: string) =>
     api.get<ApiResponse<StackedChartDataPoint[]>>(`/api/report/resource-allocation/stacked-usage?${params || ""}`),
 
-  // 🛑 HÀM MỚI 1 (Student Chart 2) 🛑
+  //  HÀM MỚI 1 (Student Chart 2) 
   getStudentEngagement: (params?: string) =>
     api.get<ApiResponse<PieChartDataPoint[]>>(`/api/report/resource-allocation/student-engagement?${params || ""}`),
 
-  // 🛑 HÀM MỚI 2 (Student Chart 3) 🛑
+  //  HÀM MỚI 2 (Student Chart 3) 
   getSupportHoursByFaculty: (params?: string) =>
     api.get<ApiResponse<ChartDataPoint[]>>(`/api/report/resource-allocation/support-by-faculty?${params || ""}`),
   

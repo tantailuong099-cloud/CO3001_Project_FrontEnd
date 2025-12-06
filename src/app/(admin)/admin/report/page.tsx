@@ -17,7 +17,7 @@ export default function Home() {
             alt="Home Background"
             fill
             className="object-cover"
-            style={{ objectPosition: "center 100%" }} // 👈 chỉnh tại đây
+            style={{ objectPosition: "center 100%" }} // 
             priority
           />
         </div>

@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import { useParams } from "next/navigation";
 import ReportFilters from "@/app/components/pages/button/ReportFilters";
@@ -128,7 +128,7 @@ export default function ReportDetailPage() {
   const { id } = useParams();
 
   // ------------------------------
-  // 💎 RESOURCE ALLOCATION (Giữ nguyên) 💎
+  // 💎 RESOURCE ALLOCATION 💎
   // ------------------------------
   if (id === "resource-allocation") {
     
@@ -146,9 +146,7 @@ export default function ReportDetailPage() {
     const [filterSemester, setFilterSemester] = useState("");
     const [filterProgram, setFilterProgram] = useState("");
 
-    // === 3. HÀM XỬ LÝ GỌI API ===
-    
-    // Options
+    // Options & Formatters
     const baseOptions = (title: string) => ({
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'top' as const, }, title: { display: true, text: title, color: '#333', font: { size: 14 } } },
@@ -159,7 +157,6 @@ export default function ReportDetailPage() {
       plugins: { legend: { position: 'top' as const, }, title: { display: true, text: title, color: '#333', font: { size: 14 } } },
     });
     
-    // Formatters
     const formatBarData = (label: string, data: ChartDataPoint[], color: string) => ({
       labels: data.map(d => d.name),
       datasets: [{ label, data: data.map(d => d.value), backgroundColor: color, maxBarThickness: 100 }]
@@ -169,7 +166,7 @@ export default function ReportDetailPage() {
       datasets: [{ data: data.map(d => d.value), backgroundColor: ["#FF8042", "#0088FE", "#00C49F", "#FFBB28"] }]
     });
     
-    
+    // === 3. HÀM XỬ LÝ GỌI API ===
     const handleGenerateReport = async () => {
       try {
         setLoading(true);
@@ -265,13 +262,18 @@ export default function ReportDetailPage() {
       }
     };
 
-    // === CỘT ĐỘNG (Giữ nguyên) ===
+    // 🟢 NEW: Tự động chạy khi vào trang (Mount)
+    useEffect(() => {
+        handleGenerateReport();
+    }, []);
+
+    // === CỘT ĐỘNG ===
     const currentColumns = useMemo(() => {
       const key = filterType || "resource";
       return columnSets[key];
     }, [filterType]);
     
-    // === HÀM RENDER CHART (Giữ nguyên) ===
+    // === HÀM RENDER CHART ===
     const renderChartBox = (chart: ChartState | null) => {
       if (!chart) {
         return <div className="bg-white border rounded-md shadow-sm p-4 h-70 flex items-center justify-center text-gray-400">(Trống)</div>
@@ -287,7 +289,7 @@ export default function ReportDetailPage() {
       );
     };
 
-    // === 5. Render Giao diện (Giữ nguyên) ===
+    // === 5. Render Giao diện ===
     return (
       <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
         
@@ -317,6 +319,7 @@ export default function ReportDetailPage() {
            <div className="p-6 text-center text-red-600">Error: {error}</div>
         )}
         
+        {/* Render bảng và chart bất kể loading xong (vì có thể có dữ liệu cũ) hoặc hiển thị khi hasData */}
         {!loading && !error && hasData && (
           <>
             <div className="grid grid-cols-3 gap-6">
@@ -353,7 +356,7 @@ export default function ReportDetailPage() {
           </>
         )}
 
-        {!loading && !hasData && (
+        {!loading && !hasData && !error && (
           <div className="p-6 text-center text-gray-500">
             Please select filters and click "Generate Report" to view data.
           </div>
@@ -364,7 +367,7 @@ export default function ReportDetailPage() {
   }
 
   // ------------------------------
-  // 💎 STUDENT PARTICIPATION (🛑 ĐÃ SỬA) 💎
+  // 💎 STUDENT PARTICIPATION (UPDATED) 💎
   // ------------------------------
   if (id === "student-participation") {
     
@@ -374,15 +377,17 @@ export default function ReportDetailPage() {
     const [tableData, setTableData] = useState<RawResource[]>([]);
     const [filterDept, setFilterDept] = useState("");
     const [filterSemester, setFilterSemester] = useState("");
-    const [filterSubject, setFilterSubject] = useState(""); // Dùng cho Program
+    const [filterSubject, setFilterSubject] = useState(""); 
     
-    // === 2. CỘT (COLUMNS) ===
+    // === 2. CỘT ===
     const currentColumns = useMemo(() => {
       return columnSets["student-performance"];
     }, []);
     
-    // === 3. HÀM XỬ LÝ ===
-    const handleDownloadReport = async () => {
+    // === 3. HÀM XỬ LÝ (TÁCH GENERATE & DOWNLOAD) ===
+    
+    // 🟢 Hàm 1: Generate Report (Chỉ lấy dữ liệu hiển thị)
+    const handleGenerateReport = async () => {
       try {
         setLoading(true);
         setError(null);
@@ -390,15 +395,12 @@ export default function ReportDetailPage() {
         const params = new URLSearchParams();
         if (filterSemester) params.append("semester", filterSemester);
         if (filterSubject) params.append("program", filterSubject);
-        
-        // 🛑 SỬA: Gửi cả 3 filter
         if (filterDept) params.append("department", filterDept); 
         
         const queryString = params.toString();
         const res = await reportApi.getRawStudentPerformance(queryString);
         
         setTableData(res.data);
-        downloadCSV(res.data, currentColumns, "student_performance.csv");
 
       } catch (err: any) {
         setError(err.message || "Failed to fetch report data.");
@@ -406,6 +408,16 @@ export default function ReportDetailPage() {
         setLoading(false);
       }
     };
+
+    // 🟢 Hàm 2: Download Report (Tải dữ liệu hiện tại về CSV)
+    const handleDownloadReport = () => {
+       downloadCSV(tableData, currentColumns, "student_performance.csv");
+    };
+
+    // 🟢 NEW: Tự động chạy khi vào trang (Mount)
+    useEffect(() => {
+        handleGenerateReport();
+    }, []);
 
     // === 4. RENDER JSX ===
     return (
@@ -430,13 +442,21 @@ export default function ReportDetailPage() {
               label="Program" 
             />
           </div>
-          <div>
+          {/* 🟢 TÁCH 2 NÚT RIÊNG BIỆT */}
+          <div className="flex gap-2">
             <button 
-              onClick={handleDownloadReport}
+              onClick={handleGenerateReport}
               className="bg-[#0C54E4] hover:bg-[#041C4C] text-white px-4 py-1 rounded transition text-sm"
               disabled={loading}
             >
-              {loading ? "Downloading..." : "Download Report"}
+              {loading ? "Generating..." : "Generate Report"}
+            </button>
+            <button 
+              onClick={handleDownloadReport}
+              className="bg-[#28a745] hover:bg-[#218838] text-white px-4 py-1 rounded transition text-sm"
+              disabled={loading || tableData.length === 0}
+            >
+              Download CSV
             </button>
           </div>
         </div>
@@ -458,7 +478,7 @@ export default function ReportDetailPage() {
 
               <tbody>
                 {tableData.length > 0 ? (
-                  tableData.map((row, i) => (
+                  tableData.filter(row => row.payload && row.payload["Student ID"]).map((row, i) => (
                     <tr key={`${row._id}-${i}`} className={i % 2 === 0 ? "bg-[#E9F5FF]" : "bg-white"}>
                       {currentColumns.map(col => (
                         <td key={col.accessor} className="px-4 py-6 text-center border-b">
@@ -470,7 +490,7 @@ export default function ReportDetailPage() {
                 ) : (
                   <tr>
                     <td colSpan={currentColumns.length} className="p-6 text-center text-gray-500 bg-white">
-                      {loading ? "Loading..." : "No data. Please click Download Report."}
+                      {loading ? "Loading..." : "No data. Please click Generate Report."}
                     </td>
                   </tr>
                 )}
@@ -483,7 +503,7 @@ export default function ReportDetailPage() {
   }
 
   // ------------------------------
-  // 💎 EVALUATION DATA (🛑 ĐÃ SỬA) 💎
+  // 💎 EVALUATION DATA (UPDATED) 💎
   // ------------------------------
   if (id === "evaluation-data") {
     
@@ -495,13 +515,15 @@ export default function ReportDetailPage() {
     const [filterSemester, setFilterSemester] = useState("");
     const [filterSubject, setFilterSubject] = useState("");
     
-    // === 2. CỘT (COLUMNS) ===
+    // === 2. CỘT ===
     const currentColumns = useMemo(() => {
       return columnSets["student-evaluation"];
     }, []);
     
-    // === 3. HÀM XỬ LÝ ===
-    const handleDownloadReport = async () => {
+    // === 3. HÀM XỬ LÝ (TÁCH GENERATE & DOWNLOAD) ===
+    
+    // 🟢 Hàm 1: Generate Report
+    const handleGenerateReport = async () => {
       try {
         setLoading(true);
         setError(null);
@@ -509,15 +531,12 @@ export default function ReportDetailPage() {
         const params = new URLSearchParams();
         if (filterSemester) params.append("semester", filterSemester);
         if (filterSubject) params.append("program", filterSubject);
-        
-        // 🛑 THÊM DÒNG NÀY
         if (filterDept) params.append("department", filterDept); 
         
         const queryString = params.toString();
         const res = await reportApi.getRawStudentEvaluation(queryString);
         
         setTableData(res.data);
-        downloadCSV(res.data, currentColumns, "student_evaluation.csv");
 
       } catch (err: any) {
         setError(err.message || "Failed to fetch report data.");
@@ -526,8 +545,18 @@ export default function ReportDetailPage() {
       }
     };
 
+    // 🟢 Hàm 2: Download Report
+    const handleDownloadReport = () => {
+        downloadCSV(tableData, currentColumns, "student_evaluation.csv");
+    };
+
+    // 🟢 NEW: Tự động chạy khi vào trang (Mount)
+    useEffect(() => {
+        handleGenerateReport();
+    }, []);
+
     // === 4. RENDER JSX ===
-     return (
+      return (
       <div className="min-h-screen bg-white p-6">
         <h1 className="text-4xl font-extrabold text-center text-[#0062FF]">
           Student Evaluation
@@ -549,13 +578,22 @@ export default function ReportDetailPage() {
               label="Program" 
             />
           </div>
-          <div>
+          
+          {/* 🟢 TÁCH 2 NÚT RIÊNG BIỆT */}
+          <div className="flex gap-2">
             <button 
-              onClick={handleDownloadReport}
+              onClick={handleGenerateReport}
               className="bg-[#0C54E4] hover:bg-[#041C4C] text-white px-4 py-1 rounded transition text-sm"
               disabled={loading}
             >
-              {loading ? "Downloading..." : "Download Report"}
+              {loading ? "Generating..." : "Generate Report"}
+            </button>
+            <button 
+              onClick={handleDownloadReport}
+              className="bg-[#28a745] hover:bg-[#218838] text-white px-4 py-1 rounded transition text-sm"
+              disabled={loading || tableData.length === 0}
+            >
+              Download CSV
             </button>
           </div>
         </div>
@@ -576,7 +614,7 @@ export default function ReportDetailPage() {
               </thead>
               <tbody>
                 {tableData.length > 0 ? (
-                  tableData.map((row, i) => (
+                  tableData.filter(row => row.payload && row.payload["Student ID"]).map((row, i) => (
                     <tr key={`${row._id}-${i}`} className={i % 2 === 0 ? "bg-[#E9F5FF]" : "bg-white"}>
                       {currentColumns.map(col => (
                         <td key={col.accessor} className="px-4 py-6 text-center border-b">
@@ -588,7 +626,7 @@ export default function ReportDetailPage() {
                 ) : (
                   <tr>
                     <td colSpan={currentColumns.length} className="p-6 text-center text-gray-500 bg-white">
-                       {!loading && "No data. Please click Download Report."}
+                       {loading ? "Loading..." : "No data. Please click Generate Report."}
                     </td>
                   </tr>
                 )}
