@@ -1,3 +1,5 @@
+// CO3001_Project_FrontEnd_main\src\app\(pages)\program\registered\page.tsx
+
 import type { Metadata } from "next";
 import ProgramCard2 from "@/app/components/pages/card/ProgramCard_2";
 import Search from "@/app/components/pages/search/Search";

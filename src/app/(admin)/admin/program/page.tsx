@@ -1,150 +1,258 @@
+// src/app/(admin)/admin/program/page.tsx
 "use client";
 
-// 1. Import useState and useRouter
-import React, { useState } from "react";
-import { useRouter } from "next/navigation"; // <-- Import useRouter
-// --- FIX: Corrected alias import paths ---
+import React, { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Search from "@/app/components/pages/search/Search";
-// 2. Import AdminProgramCardProps
-import AdminProgramCard, {
-  AdminProgramCardProps,
-} from "@/app/components/pages/card/AdminProgramCard";
-import type { Metadata } from "next";
-import { PlusCircle } from "lucide-react";
-// 3. Import the modal
+import AdminProgramCard from "@/app/components/pages/card/AdminProgramCard";
 import DeleteConfirmationModal from "@/app/components/pages/program-detail/DeleteConfirmationModal";
-// --- END FIX ---
+import { PlusCircle } from "lucide-react";
 
-// Note: Metadata export is commented out as it's not supported
-// in Client Components. This should be in a parent layout.tsx.
-// export const metadata: Metadata = {
-//   title: "Program Admin",
-//   description: "Tutor Support System",
-// };
+// -------------------------------
+// Type for Registration (class group)
+// -------------------------------
+export interface Registration {
+  _id: string;
+  courseCode: string;       // course code
+  classGroup: string;
+  tutor?: string;
+  registeredCount: number;
+  capacity?: number;
+  sessions: { day: string; startTime: string; endTime: string }[];
+  status: "created" | "tutor_assigned" | "active" | "closed";
+  updatedAt?: string;
+  courseName?: string;
+  department?: string;
+  semester?: string;
+}
 
-// Get the Course type from AdminProgramCardProps
-type Course = AdminProgramCardProps["course"];
 
-// Mock data moved to a constant
-const initialCourses: Course[] = [
-  {
-    code: "CO2301",
-    name: "Computer Network",
-    credit: 4,
-    lecturer: "Phạm Hồng Phát",
-    semester: "2 / 2025",
-    department: "Computer Science",
-    startDate: "Nov 1, 2025",
-    duration: "15 weeks",
-    sessionCode: "CC01",
-    sessionType: "Offline",
-    location: "H1, BKHCM",
-    status: "Ongoing",
-    updatedAt: "Oct 25, 2025",
-  },
-  {
-    code: "CO2203",
-    name: "Data Structures & Algorithms",
-    credit: 4,
-    lecturer: "Trần Thị Xuân Hương",
-    semester: "2 / 2025",
-    department: "Computer Science",
-    startDate: "Nov 3, 2025",
-    duration: "15 weeks",
-    sessionCode: "L01",
-    sessionType: "Offline",
-    location: "H6, BKHCM",
-    status: "Ongoing",
-    updatedAt: "Oct 21, 2025",
-  },
-  {
-    code: "CO2402",
-    name: "Machine Learning",
-    credit: 3,
-    lecturer: "",
-    semester: "2 / 2025",
-    department: "Computer Science",
-    startDate: "Sep 1, 2025",
-    duration: "15 weeks",
-    sessionCode: "TN01",
-    sessionType: "Online",
-    location: "–",
-    status: "Completed",
-    updatedAt: "Sep 10, 2025",
-  },
-];
+// -------------------------------
+// Map course codes to names & default semester/capacity
+// -------------------------------
+
+const COURSE_NAMES: Record<string, string> = {
+  CO3045: "Game Programming",
+  CO3047: "Advanced Computer Networks",
+  CO3049: "Web Programming",
+  CO3051: "Mobile Systems",
+  CO3057: "Digital Image Processing and Computer Vision",
+  CO3059: "Computer Graphics",
+  CO3061: "Introduction to Artificial Intelligence",
+  CO3065: "Advanced Software Engineering",
+  CO3067: "Parallel Computing",
+  CO3069: "Cryptography and Network Security",
+  CO3071: "Distributed Systems",
+  CO3083: "Advance Cryptography and Coding Theory",
+  CO3085: "Natural Language Processing",
+  CO3089: "High Performance Computing Topics",
+  C03115: "Systems Analysis and Design",
+  CO4025: "Information and Social Networks",
+  CO3117: "Machine Learning",
+  CO4031: "Data Warehouses and Decision Support Systems",
+  CO4033: "Big Data Analytics and Business Intelligence",
+  CO4035: "Enterprise Resource Planning Systems",
+  CO4037: "Management Information Systems",
+  CO4039: "Biometric Security",
+};
+
+const DEFAULT_SEMESTER = "2025 Fall";
+const DEFAULT_CAPACITY = 30;
+const ITEMS_PER_PAGE = 5;
+
+
+// -------------------------------
+// ProgramAdminPage Component
+// -------------------------------
 
 export default function ProgramAdminPage() {
-  // 4. Add state for courses list and modal controls
-  const [courses, setCourses] = useState(initialCourses);
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [targetId, setTargetId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [targetCourseCode, setTargetCourseCode] = useState<
-    string | number | null
-  >(null);
-  const router = useRouter(); // <-- Add router instance
+  const router = useRouter();
 
-  // 5. Create handlers for delete logic
-  const openDeleteModal = (code?: string | number) => {
-    if (!code) return;
-    setTargetCourseCode(code);
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+  // -------------------------------
+  // Fetch courses and registrations
+  // -------------------------------
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Fetch courses
+        const coursesRes = await fetch(`${BACKEND_URL}/api/course`, {
+          credentials: "include",
+        });
+        const coursesDataRaw = await coursesRes.json();
+        const coursesData: any[] = Array.isArray(coursesDataRaw)
+          ? coursesDataRaw
+          : Array.isArray(coursesDataRaw.data)
+            ? coursesDataRaw.data
+            : [];
+
+        const coursesMap: Record<string, any> = {};
+        coursesData.forEach((c: any) => {
+          if (c.courseCode) coursesMap[c.courseCode] = c;
+        });
+
+        // Fetch registrations
+        const regRes = await fetch(`${BACKEND_URL}/api/matching/registrations`, {
+          credentials: "include",
+        });
+        const regDataRaw = await regRes.json();
+        const regData: any[] = Array.isArray(regDataRaw)
+          ? regDataRaw
+          : Array.isArray(regDataRaw.data)
+            ? regDataRaw.data
+            : [];
+
+        // Merge course info into registrations
+        const enriched: Registration[] = regData.map((r: any) => {
+          const course = coursesMap[r.courseCode] || {};
+          console.log("REG courseCode:", r.courseCode, "courseName:", COURSE_NAMES[r.courseCode]);
+
+          return {
+            ...r,
+            courseName: course.courseName || COURSE_NAMES[r.courseCode],
+            semester: course.semester || DEFAULT_SEMESTER,
+            capacity: course.capacity || DEFAULT_CAPACITY,
+            department: course.department || "—",
+          };
+        });
+
+        setRegistrations(enriched);
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // -------------------------------
+  // Delete modal handlers
+  // -------------------------------
+  const openDeleteModal = (id: string) => {
+    setTargetId(id);
     setIsModalOpen(true);
   };
 
   const closeDeleteModal = () => {
-    if (isLoading) return; // Don't close while deleting
+    if (isLoading) return;
+    setTargetId(null);
     setIsModalOpen(false);
-    setTargetCourseCode(null);
   };
 
-  const confirmDelete = () => {
-    if (!targetCourseCode) return;
-
+  const confirmDelete = async () => {
+    if (!targetId) return;
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setCourses((currentCourses) =>
-        currentCourses.filter((course) => course.code !== targetCourseCode)
+
+    try {
+      const [courseCode, classGroup] = targetId.split('_');
+
+      const res = await fetch(`${BACKEND_URL}/api/matching/registrations/${courseCode}/${classGroup}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Delete failed");
+
+      setRegistrations((prev) =>
+        prev.filter(
+          (r) => !(r.courseCode === courseCode && r.classGroup === classGroup)
+        )
       );
+
+    } catch (err) {
+      console.error("Failed to delete class group:", err);
+    } finally {
       setIsLoading(false);
       closeDeleteModal();
-      // In a real app, you'd show a success toast here
-    }, 1000); // 1 second delay
+    }
   };
 
-  // --- ADDED: Handler for "Add New Course" ---
-  const handleAddNewCourse = () => {
-    router.push("/admin/program/new");
+  // -------------------------------
+  // Filter & pagination
+  // -------------------------------
+  const filteredRegistrations = useMemo(() => {
+    if (!searchTerm) return registrations;
+    return registrations.filter((r) =>
+      r.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.classGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.courseCode.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [registrations, searchTerm]);
+
+  const totalPages = Math.ceil(filteredRegistrations.length / ITEMS_PER_PAGE);
+  const paginatedRegistrations = filteredRegistrations.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleAddNew = () => router.push("/admin/program/new");
+
+  // -------------------------------
+  // Pagination logic
+  // -------------------------------
+  const getPageNumbers = (): (number | string)[] => {
+    const pages: (number | string)[] = [];
+    const maxShown = 5;
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPages, currentPage + 2);
+
+    if (currentPage <= 3) end = Math.min(totalPages, maxShown);
+    else if (currentPage >= totalPages - 2) start = Math.max(1, totalPages - (maxShown - 1));
+
+    if (start > 1) {
+      pages.push(1);
+      if (start > 2) pages.push("...");
+    }
+
+    for (let i = start; i <= end; i++) pages.push(i);
+
+    if (end < totalPages) {
+      if (end < totalPages - 1) pages.push("...");
+      pages.push(totalPages);
+    }
+
+    return pages;
   };
-  // --- END ---
 
-  const targetCourse = courses.find((c) => c.code === targetCourseCode);
-
+  // -------------------------------
+  // Render
+  // -------------------------------
   return (
     <div className="py-10 px-[30px] min-h-screen bg-gray-50">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-10">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Course Administration
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Course Administration</h1>
           <p className="text-gray-600 text-sm font-medium">Admin / Courses</p>
         </div>
-
-        {/* --- UPDATED: Button now uses onClick handler --- */}
         <button
-          onClick={handleAddNewCourse}
+          onClick={handleAddNew}
           className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-md hover:bg-blue-700 transition font-medium shadow-sm"
         >
           <PlusCircle size={18} />
           Add New Course
         </button>
-        {/* --- END UPDATE --- */}
       </div>
 
-      {/* Search bar */}
-      <div className="max-w-xl mx-auto mb-10">
-        <Search placeholder="Search Course by Name or Code..." />
+      {/* Centered Search */}
+      <div className="flex justify-start mb-7">
+        <div className="w-full max-w-xl">
+          <Search
+            placeholder="Search Course or Group..."
+            value={searchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
       </div>
 
       {/* Table */}
@@ -154,26 +262,21 @@ export default function ProgramAdminPage() {
             <tr>
               <th className="px-4 py-3">Course Code</th>
               <th className="px-4 py-3">Course Name</th>
-              <th className="px-4 py-3 text-center">Credits</th>
-              <th className="px-4 py-3">Lecturer</th>
+              <th className="px-4 py-3">Tutor</th>
               <th className="px-4 py-3 text-center">Semester</th>
-              <th className="px-4 py-3">Start Date</th>
-              <th className="px-4 py-3">Duration</th>
-              <th className="px-4 py-3 text-center">Session</th>
-              <th className="px-4 py-3 text-center">Type</th>
-              <th className="px-4 py-3 text-center">Location</th>
+              <th className="px-4 py-3 text-center">Class Group</th>
+              <th className="px-4 py-3 text-center">Registered</th>
+              <th className="px-4 py-3 text-center">Sessions</th>
               <th className="px-4 py-3 text-center">Status</th>
               <th className="px-4 py-3 text-center">Last Updated</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
-
           <tbody>
-            {courses.map((course) => (
+            {paginatedRegistrations.map((reg) => (
               <AdminProgramCard
-                key={course.code}
-                course={course}
-                // 6. Pass the open modal handler to the card
+                key={reg.courseCode + reg.classGroup}
+                classGroup={{ ...reg, id: reg.courseCode + "_" + reg.classGroup }}
                 onDelete={openDeleteModal}
               />
             ))}
@@ -181,16 +284,63 @@ export default function ProgramAdminPage() {
         </table>
       </div>
 
-      {/* Footer hint */}
-      <p className="text-xs text-gray-500 mt-6 text-center">
-        Showing {courses.length} courses • Data last synced on{" "}
-        <span className="font-medium">Oct 27, 2025</span>
-      </p>
+      {/* Smart Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-8">
+          <div className="flex items-center space-x-2 bg-white p-3 rounded-xl shadow border">
 
-      {/* 7. Render the modal conditionally */}
-      {isModalOpen && targetCourse && (
+            {/* Prev */}
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-lg border font-semibold transition
+                        bg-gray-100 text-gray-900 hover:bg-gray-200
+                        disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Prev
+            </button>
+
+            {getPageNumbers().map((page, index) =>
+              typeof page === "number" ? (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-lg border font-semibold transition
+                    ${currentPage === page
+                      ? "bg-blue-600 text-white border-blue-600 shadow"
+                      : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                    }`}
+                >
+                  {page}
+                </button>
+              ) : (
+                <span key={`e-${index}`} className="px-3 text-gray-400">…</span>
+              )
+            )}
+
+            {/* Next */}
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-lg border font-medium 
+                        hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* Delete modal */}
+      {isModalOpen && targetId && (
         <DeleteConfirmationModal
-          itemName={targetCourse.name}
+          itemName={
+            registrations.find(
+              (r) => `${r.courseCode}_${r.classGroup}` === targetId
+            )?.courseName || "this class group"
+          }
           onConfirm={confirmDelete}
           onCancel={closeDeleteModal}
           isLoading={isLoading}
