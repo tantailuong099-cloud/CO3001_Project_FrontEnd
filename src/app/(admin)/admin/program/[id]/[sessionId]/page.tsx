@@ -133,7 +133,9 @@ export default async function ClassDetailPage({
   let count = 0;
 
   students.forEach((s: any) => {
-    const subj = safeParse(s.subjects)?.find((sub: any) => sub.Subject === info.courseName);
+    const subj = safeParse(s.subjects)?.find(
+      (sub: any) => sub.Subject === info.courseName
+    );
     if (subj) {
       count++;
       avgFinal += subj.finalScore ?? 0;
@@ -155,7 +157,9 @@ export default async function ClassDetailPage({
     avgComponents.midterm = (avgComponents.midterm / count).toFixed(2);
     avgComponents.final = (avgComponents.final / count).toFixed(2);
     avgComponents.project = (avgComponents.project / count).toFixed(2);
-    avgComponents.participation = (avgComponents.participation / count).toFixed(2);
+    avgComponents.participation = (avgComponents.participation / count).toFixed(
+      2
+    );
   }
 
   const distPercent = (key: keyof typeof dist) =>
@@ -178,49 +182,93 @@ export default async function ClassDetailPage({
         </div>
       </div>
 
-
       {/* ================= SUMMARY CARDS ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white border rounded-xl p-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Course Info</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900">
+            Course Info
+          </h2>
           <ul className="space-y-2 text-gray-700">
-            <li><strong>Course:</strong> {info.courseName}</li>
-            <li><strong>Class Group:</strong> {info.classGroup}</li>
-            <li><strong>Tutor:</strong> {info.tutor || "Unassigned"}</li>
-            <li><strong>Department:</strong> {info.department}</li>
-            <li><strong>Semester:</strong> {info.semester}</li>
-            <li><strong>Status:</strong> <span className="capitalize">{info.status}</span></li>
+            <li>
+              <strong>Course:</strong> {info.courseName}
+            </li>
+            <li>
+              <strong>Class Group:</strong> {info.classGroup}
+            </li>
+            <li>
+              <strong>Tutor:</strong> {info.tutor || "Unassigned"}
+            </li>
+            <li>
+              <strong>Department:</strong> {info.department}
+            </li>
+            <li>
+              <strong>Semester:</strong> {info.semester}
+            </li>
+            <li>
+              <strong>Status:</strong>{" "}
+              <span className="capitalize">{info.status}</span>
+            </li>
           </ul>
         </div>
 
         <div className="bg-white border rounded-xl p-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900">Class Stats</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900">
+            Class Stats
+          </h2>
           <ul className="space-y-2 text-gray-700">
-            <li><strong>Registered Students:</strong> {info.registeredCount} / {info.courseCapacity}</li>
-            <li><strong>Average Final Score:</strong> {avgFinal}</li>
-            <li><strong>Start Date:</strong> {info.courseStart ? new Date(info.courseStart).toLocaleDateString() : 'TBD'}</li>
-            <li><strong>End Date:</strong> {info.courseEnd ? new Date(info.courseEnd).toLocaleDateString() : 'TBD'}</li>
-            <li><strong>Last Updated:</strong> {new Date(info.updatedAt).toLocaleString()}</li>
+            <li>
+              <strong>Registered Students:</strong> {info.registeredCount} /{" "}
+              {info.courseCapacity}
+            </li>
+            <li>
+              <strong>Average Final Score:</strong> {avgFinal}
+            </li>
+            <li>
+              <strong>Start Date:</strong>{" "}
+              {info.courseStart
+                ? new Date(info.courseStart).toLocaleDateString()
+                : "TBD"}
+            </li>
+            <li>
+              <strong>End Date:</strong>{" "}
+              {info.courseEnd
+                ? new Date(info.courseEnd).toLocaleDateString()
+                : "TBD"}
+            </li>
+            <li>
+              <strong>Last Updated:</strong>{" "}
+              {new Date(info.updatedAt).toLocaleString()}
+            </li>
           </ul>
         </div>
       </div>
 
       {/* ================= SCORE DISTRIBUTION ================= */}
       <div className="bg-white border rounded-xl p-6 shadow-sm">
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">Score Distribution</h2>
+        <h2 className="text-xl font-semibold mb-4 text-gray-900">
+          Score Distribution
+        </h2>
         <ul className="space-y-3 text-gray-900">
-          {["excellent","good","satisfactory","needsImprovement"].map((key) => (
-            <li key={key} className="flex items-center gap-3">
-              <span className="w-32 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
-              <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
-                <div
-                  className="bg-green-500 h-4 rounded-full"
-                  style={{ width: `${distPercent(key as keyof typeof dist)}%` }}
-                ></div>
-              </div>
-              <span className="w-10 text-right">{dist[key as keyof typeof dist]}</span>
-            </li>
-          ))}
+          {["excellent", "good", "satisfactory", "needsImprovement"].map(
+            (key) => (
+              <li key={key} className="flex items-center gap-3">
+                <span className="w-32 capitalize">
+                  {key.replace(/([A-Z])/g, " $1")}
+                </span>
+                <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                  <div
+                    className="bg-green-500 h-4 rounded-full"
+                    style={{
+                      width: `${distPercent(key as keyof typeof dist)}%`,
+                    }}
+                  ></div>
+                </div>
+                <span className="w-10 text-right">
+                  {dist[key as keyof typeof dist]}
+                </span>
+              </li>
+            )
+          )}
         </ul>
       </div>
 
@@ -242,18 +290,32 @@ export default async function ClassDetailPage({
             </thead>
             <tbody className="text-gray-900">
               {students.map((s: any, i: number) => {
-                const subjectData = safeParse(s.subjects)
-                  ?.find((sub: any) => sub.Subject === info.courseName);
+                const subjectData = safeParse(s.subjects)?.find(
+                  (sub: any) => sub.Subject === info.courseName
+                );
 
                 return (
-                  <tr key={i} className="border-b hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={i}
+                    className="border-b hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-2 font-medium">{s.name}</td>
                     <td className="px-4 py-2">{s.email}</td>
-                    <td className="px-4 py-2 text-center">{subjectData?.scores?.participation ?? '—'}</td>
-                    <td className="px-4 py-2 text-center">{subjectData?.scores?.project ?? '—'}</td>
-                    <td className="px-4 py-2 text-center">{subjectData?.scores?.midterm ?? '—'}</td>
-                    <td className="px-4 py-2 text-center">{subjectData?.scores?.final ?? '—'}</td>
-                    <td className="px-4 py-2 text-center font-bold">{subjectData?.finalScore ?? '—'}</td>
+                    <td className="px-4 py-2 text-center">
+                      {subjectData?.scores?.participation ?? "—"}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      {subjectData?.scores?.project ?? "—"}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      {subjectData?.scores?.midterm ?? "—"}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      {subjectData?.scores?.final ?? "—"}
+                    </td>
+                    <td className="px-4 py-2 text-center font-bold">
+                      {subjectData?.finalScore ?? "—"}
+                    </td>
                   </tr>
                 );
               })}
