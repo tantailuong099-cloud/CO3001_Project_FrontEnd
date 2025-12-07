@@ -51,7 +51,7 @@ export default function Sider() {
     {
       icon: <FaUserGear />,
       label: "Thông tin cá nhân",
-      href: `/admin/profile/${1}`,
+      href: `/admin/profile`,
     },
     { icon: <FaPowerOff />, label: "Đăng xuất", href: "/logout", logout: true },
   ];
