@@ -101,19 +101,21 @@ export default function UserManagementClient() {
             <div className="flex gap-8">
               <button
                 onClick={() => setActiveTab("student")}
-                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${activeTab === "student"
+                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${
+                  activeTab === "student"
                     ? "text-blue-600 border-blue-600"
                     : "text-gray-400 border-transparent hover:text-gray-600"
-                  }`}
+                }`}
               >
                 Student
               </button>
               <button
                 onClick={() => setActiveTab("tutor")}
-                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${activeTab === "tutor"
+                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${
+                  activeTab === "tutor"
                     ? "text-blue-600 border-blue-600"
                     : "text-gray-400 border-transparent hover:text-gray-600"
-                  }`}
+                }`}
               >
                 Tutor
               </button>
@@ -131,7 +133,6 @@ export default function UserManagementClient() {
             </div>
           </div>
 
-          {/* User List */}
           <div className="space-y-3">
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
@@ -168,8 +169,9 @@ export default function UserManagementClient() {
                 (_, index) => (
                   <div
                     key={`empty-${index}`}
-                    className={`p-4 rounded-lg ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      }`}
+                    className={`p-4 rounded-lg ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    }`}
                     style={{ height: "64px" }}
                   />
                 )

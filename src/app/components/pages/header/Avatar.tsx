@@ -71,12 +71,16 @@ export default function Avatar() {
     e.preventDefault();
 
     try {
+      // Gọi API logout (qua service axios)
       await api.post("/api/auth/logout");
-      window.location.href = "/login";
+
+      // Sau khi logout, reload hoặc redirect
+      window.location.href = "/admin/login";
     } catch (err) {
       console.error("Logout failed:", err);
-      window.location.href = "/login";
+      window.location.href = "/admin/login"; // fallback
     }
+    window.location.reload();
   };
 
   return (
