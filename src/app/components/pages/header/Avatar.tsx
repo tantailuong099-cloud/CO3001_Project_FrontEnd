@@ -30,14 +30,42 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiBell } from "react-icons/fi";
 import { User, LogOut } from "lucide-react";
 import { api } from "@/app/services/api";
+import { userApi, type User as UserType } from "@/app/services/userApi";
+
+interface VerifyResponse {
+  userId: string;
+  email: string;
+  role: string;
+}
 
 export default function Avatar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<UserType | null>(null);
+
   const toggleDropdown = () => setIsOpen(!isOpen);
+
+  // Fetch user data on mount
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const verifyResponse = await api.post<VerifyResponse>("/api/auth/verify");
+        const { userId } = verifyResponse;
+
+        if (userId) {
+          const userData = await userApi.getUserById(userId);
+          setUser(userData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,24 +91,32 @@ export default function Avatar() {
 
       <div className="relative">
         <button onClick={toggleDropdown} className="flex items-center">
-          <Image
-            src="/image/logo.svg"
-            alt="User Avatar"
-            width={48}
-            height={48}
-            className="h-12 w-12 rounded-full object-cover transition-all duration-200 hover:shadow-2xl cursor-pointer"
-            priority
-          />
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt="User Avatar"
+              className="h-10 w-10 rounded-full object-cover transition-all duration-200 hover:shadow-2xl cursor-pointer border-2 border-white"
+            />
+          ) : (
+            <Image
+              src="/image/logo.svg"
+              alt="User Avatar"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-full object-cover transition-all duration-200 hover:shadow-2xl cursor-pointer"
+              priority
+            />
+          )}
         </button>
 
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-            <div className="px-4 py-2 border-b">
+          <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+            <div className="px-4 py-3 border-b">
               <p className="text-sm font-semibold text-gray-800">
-                Trình Ai Chấm
+                {user?.name || "Loading..."}
               </p>
               <p className="text-xs text-gray-500 break-words">
-                anhmuonlam3metuhao@gmail.com
+                {user?.email || ""}
               </p>
             </div>
 
@@ -96,10 +132,6 @@ export default function Avatar() {
             <div className="border-t my-1"></div>
 
             <button
-              // onClick={() => {
-              //   setIsOpen(false);
-              //   console.log("Logout clicked");
-              // }}
               onClick={handleLogout}
               className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
             >

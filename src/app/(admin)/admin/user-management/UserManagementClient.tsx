@@ -97,6 +97,7 @@ export default function UserManagementClient() {
 
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
+            {/* Tabs */}
             <div className="flex gap-8">
               <button
                 onClick={() => setActiveTab("student")}

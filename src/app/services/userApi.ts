@@ -11,6 +11,7 @@ export interface BaseUser {
   _id: string;
   name: string;
   email: string;
+  password?: string;
   role: 'Tutor' | 'Student' | 'Admin';
   avatar?: string;
   createdAt?: string;
@@ -26,9 +27,17 @@ export interface TutorConstraint {
   endTime: string;
 }
 
+export interface StudentScores {
+  midterm: number;
+  final: number;
+  project: number;
+  participation: number;
+}
+
 export interface StudentSubject {
   Subject: string;
-  score: number;
+  scores: StudentScores;
+  finalScore: number;
 }
 
 // ========================
@@ -37,18 +46,23 @@ export interface StudentSubject {
 
 export interface Student extends BaseUser {
   role: 'Student';
+  studentId?: string;
+  major?: string;
+  enrolledCourses?: string | string[];
+  registrations?: string[];
   subjects?: StudentSubject[];
-  class?: string[];
 }
 
 export interface Tutor extends BaseUser {
   role: 'Tutor';
-  preferredSubjects?: string[];
-  preferredStudentLevel?: string;
+  tutorId?: string;
+  department?: string;
+  assignedCourses?: string | string[];
+  assignedGroups?: string[];
+  sharedMaterial?: string | string[];
+  constraints?: string | TutorConstraint[];
   maxStudents?: number;
-  courses?: string[];
-  sharedMaterial?: string[];
-  constraints?: TutorConstraint[];
+  subjects?: string[];
 }
 
 export interface Admin extends BaseUser {
@@ -60,7 +74,42 @@ export interface Admin extends BaseUser {
 export type User = Student | Tutor | Admin;
 
 // ========================
-// 3. DTOs (Data Transfer Objects)
+// 3. HELPER FUNCTIONS
+// ========================
+
+/**
+ * Parse string array from database (handles "['item1', 'item2']" format)
+ */
+export function parseStringArray(value: string | string[] | undefined): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  try {
+    // Replace single quotes with double quotes for valid JSON
+    const jsonString = value.replace(/'/g, '"');
+    const parsed = JSON.parse(jsonString);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Parse constraints from database (handles string format)
+ */
+export function parseConstraints(value: string | TutorConstraint[] | undefined): TutorConstraint[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  try {
+    const jsonString = value.replace(/'/g, '"');
+    const parsed = JSON.parse(jsonString);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// ========================
+// 4. DTOs (Data Transfer Objects)
 // ========================
 
 export interface CreateUserPayload {
@@ -78,25 +127,22 @@ export type UpdateUserPayload = Partial<User>;
 // ========================
 
 export const userApi = {
-  
-  /**
-   * Create a new user
-   * Endpoint: POST /user/create
-   */
-  createUser: (data: CreateUserPayload) =>
-    api.post<User>('/user/create', data),
 
   /**
-   * Get all users and filter by role on the client side
-   * Endpoint: GET /user
+   * Create a new user
+   * Endpoint: POST /api/user/create
+   */
+  createUser: (data: CreateUserPayload) =>
+    api.post<User>('/api/user/create', data),
+
+  /**
+   * Get users by role
+   * Endpoint: GET /api/user/role/:role (Student, Tutor, Admin)
    */
   getUsersListByRole: async (role: 'Tutor' | 'Student' | 'Admin'): Promise<User[]> => {
     try {
-      // Get all users from backend
-      const allUsers = await api.get<User[]>('/user');
-      
-      // Filter by role on client side
-      return allUsers.filter(user => user.role === role);
+      const users = await api.get<User[]>(`/api/user/${role}`);
+      return Array.isArray(users) ? users : [];
     } catch (error) {
       console.error('Error fetching users:', error);
       throw error;
@@ -105,10 +151,17 @@ export const userApi = {
 
   /**
    * Get a specific user by ID
-   * Endpoint: GET /user/:id
+   * Endpoint: GET /api/user/by-id/:id
    */
-  getUserById: (userId: string) =>
-    api.get<User>(`/user/${userId}`),
+  getUserById: async (userId: string): Promise<User | null> => {
+    try {
+      const user = await api.get<User>(`/api/user/by-id/${userId}`);
+      return user;
+    } catch (error) {
+      console.error('Error fetching user by ID:', error);
+      return null;
+    }
+  },
 
   /**
    * Helpers for specific roles
@@ -129,18 +182,23 @@ export const userApi = {
   },
 
   /**
-   * Get all users
-   * Endpoint: GET /user
+   * Get all users (fetches all roles and combines)
    */
-  getAllUsers: () =>
-    api.get<User[]>('/user'),
+  getAllUsers: async (): Promise<User[]> => {
+    const [students, tutors, admins] = await Promise.all([
+      api.get<User[]>('/api/user/Student'),
+      api.get<User[]>('/api/user/Tutor'),
+      api.get<User[]>('/api/user/Admin'),
+    ]);
+    return [...students, ...tutors, ...admins];
+  },
 
   /**
    * Update user information
-   * Endpoint: POST /user/update/:id
+   * Endpoint: POST /api/user/update/:id
    */
   updateUser: (userId: string, data: UpdateUserPayload) =>
-    api.post<User>(`/user/update/${userId}`, data),
+    api.post<User>(`/api/user/update/${userId}`, data),
 };
 
 export default userApi;
