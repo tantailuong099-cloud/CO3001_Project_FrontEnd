@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import SessionCard from "@/app/components/pages/card/SessionsCard"; 
-import UploadDocumentForm from "@/app/components/pages/card/UploadDocumentForm";
-
-import { FileText, Book, Presentation } from "lucide-react";
-
+import { cookies } from 'next/headers';
+import { getCurrentUser } from '@/lib/auth';
+import CourseDetailClient from '@/app/components/pages/views/CourseDetailClient';
 
 export const metadata: Metadata = {
   title: "Courses Detail",
@@ -11,45 +9,53 @@ export const metadata: Metadata = {
 };
 
 
-const userRole = 'Tutor'; // đổi role để check tutor/student
 
-// Dữ liệu giả lập
-const courseContent = [
-  { type: 'General', items: ['Syllabus', 'Database Systems (CO2013)_Video'] },
-  { type: 'Reference', items: ['Book 1', 'Book 2', 'Book 3'] },
-  { type: 'Slide', items: ['Course Introduction', 'Chapter 1', 'Chapter 3'] },
-];
+async function getCourseDetail(courseId: string) {
+    const token = cookies().get('access_token')?.value;
+    if (!token) return null;
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/course/${courseId}`, {
+             headers: { 'Cookie': `access_token=${token}` },
+             cache: 'no-store',
+        });
+        if(!res.ok) return null;
+        return res.json();
+    } catch(e) {
+        return null;
+    }
+}
 
+// function groupMaterialsByCategory(materials: any[]) {
+//     if (!materials || materials.length === 0) {
+//         return [];
+//     }
+//     const grouped = materials.reduce((acc, material) => {
+//         const category = material.category || 'General';
+//         if (!acc[category]) {
+//             acc[category] = { type: category, items: [] };
+//         }
+//         acc[category].items.push(material);
+//         return acc;
+//     }, {});
+//     // Chuyển từ object sang mảng
+//     return Object.values(grouped);
+// }
 
-export default function CourseDetailPage({ params }: { params: { id: string } }) {
-  const StudentView = () => (
-      <div className="space-y-6">
-        {courseContent.map(section => (
-          <SessionCard
-            key={section.type}
-            section={section}
-            iconName={section.type} 
-          />
-        ))}
-      </div>
+export default async function CourseDetailPage({ params }: { params: { id: string } }) {
+  const [currentUser, courseDetail] = await Promise.all([
+    getCurrentUser(),
+    getCourseDetail(params.id)
+  ]);
+
+  if (!currentUser || !courseDetail) {
+    return <div className="p-8">Error loading course data. Please try again.</div>;
+  }
+
+  return (
+    <CourseDetailClient 
+      currentUser={currentUser} 
+      courseDetail={courseDetail}
+      courseId={params.id}
+    />
   );
-
-  const TutorView = () => (
-    <div className="p-8">
-      <div className="space-y-4">
-        {courseContent.map(section => (
-          <SessionCard
-            key={section.type}
-            section={section}
-            iconName={section.type}
-            isManageable={true}
-            defaultOpen={section.type === 'Reference'}
-          />
-        ))}
-      </div>
-      <UploadDocumentForm />
-    </div>
-  );
-
-  return (userRole === 'Tutor' ? <TutorView /> : <StudentView />);
 }
