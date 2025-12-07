@@ -45,7 +45,7 @@ async function getFeedbacksForTutor(tutorId: string) {
 }
 
 export default async function FeedbackPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+  const { id } = await params;
 
   // Lấy dữ liệu thật nếu là Tutor
   let feedbacksData = [];
