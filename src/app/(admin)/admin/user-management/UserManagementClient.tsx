@@ -101,21 +101,19 @@ export default function UserManagementClient() {
             <div className="flex gap-8">
               <button
                 onClick={() => setActiveTab("student")}
-                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${
-                  activeTab === "student"
+                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${activeTab === "student"
                     ? "text-blue-600 border-blue-600"
                     : "text-gray-400 border-transparent hover:text-gray-600"
-                }`}
+                  }`}
               >
                 Student
               </button>
               <button
                 onClick={() => setActiveTab("tutor")}
-                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${
-                  activeTab === "tutor"
+                className={`text-xl font-semibold pb-2 border-b-2 transition-colors ${activeTab === "tutor"
                     ? "text-blue-600 border-blue-600"
                     : "text-gray-400 border-transparent hover:text-gray-600"
-                }`}
+                  }`}
               >
                 Tutor
               </button>
@@ -133,28 +131,7 @@ export default function UserManagementClient() {
             </div>
           </div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-gray-600">Loading users...</p>
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && !loading && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <p className="text-red-600 font-semibold">Error</p>
-              <p className="text-red-600 text-sm mt-1">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-3 text-sm text-blue-600 hover:underline"
-              >
-                Try again
-              </button>
-            </div>
-          )}
-
+          {/* User List */}
           <div className="space-y-3">
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
@@ -191,9 +168,8 @@ export default function UserManagementClient() {
                 (_, index) => (
                   <div
                     key={`empty-${index}`}
-                    className={`p-4 rounded-lg ${
-                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    }`}
+                    className={`p-4 rounded-lg ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                      }`}
                     style={{ height: "64px" }}
                   />
                 )
