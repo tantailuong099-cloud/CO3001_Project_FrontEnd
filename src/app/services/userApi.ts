@@ -151,11 +151,11 @@ export const userApi = {
 
   /**
    * Get a specific user by ID
-   * Endpoint: GET /api/user/by-id/:id
+   * Endpoint: GET /api/user/:id
    */
   getUserById: async (userId: string): Promise<User | null> => {
     try {
-      const user = await api.get<User>(`/api/user/by-id/${userId}`);
+      const user = await api.get<User>(`/api/user/${userId}`);
       return user;
     } catch (error) {
       console.error('Error fetching user by ID:', error);
