@@ -45,6 +45,7 @@ interface ProfileClientProps {
   userId: string;
 }
 
+
 export default function ProfileClient({ userId }: ProfileClientProps) {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -291,6 +292,42 @@ export default function ProfileClient({ userId }: ProfileClientProps) {
                 </div>
               )}
             </div>
+
+            {/* Shared Materials */}
+            <div className="border-2 border-gray-200 rounded-lg overflow-hidden">
+              <h3 className="bg-white text-lg font-semibold text-blue-600 px-4 py-3 border-b-2 border-gray-200">
+                Shared Materials
+              </h3>
+              <div className="bg-gray-50 p-4">
+                {userData.sharedMaterial.length > 0 ? (
+                  <div className="space-y-2">
+                    {userData.sharedMaterial.map((material, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 bg-white rounded"
+                      >
+                        <FileText className="w-4 h-4 text-blue-600" />
+                        <p className="text-sm text-gray-800">{material}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    No shared materials yet
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 mt-6 pt-6 border-t">
+            <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors">
+              Edit Profile
+            </button>
+            <button className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-colors">
+              Delete Tutor
+            </button>
           </div>
 
           {/* Bảng điểm */}
