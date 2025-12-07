@@ -1,54 +1,169 @@
-'use client'; // 👈 BẮT BUỘC: Biến toàn bộ phần hiển thị thành client
+// src/app/components/pages/views/CourseDetailClient.tsx
 
-import StudentView from './StudentView';
-import TutorView from './TutorView';
+"use client";
 
-// Định nghĩa lại các kiểu dữ liệu để component này biết nó đang nhận gì
+import { useEffect, useState } from "react";
+import StudentView from "./StudentView";
+import TutorView from "./TutorView";
+import { Loader2 } from "lucide-react";
+
+// --- 1. Cập nhật Interface theo đúng JSON ---
+
 interface User {
   userId: string;
   email: string;
-  role: 'Student' | 'Tutor' | 'Admin';
+  role: "Student" | "Tutor" | "Admin";
 }
 
-interface CourseDetail {
-  // Thêm các trường dữ liệu của course mà bạn cần
+interface Session {
+  day: string;
+  startTime: string;
+  endTime: string;
+  form?: string;
+  location?: string;
+}
+
+export interface MaterialItem {
   _id: string;
-  materials?: any[]; // Mảng tài liệu
-  // ... các trường khác
+  materialName: string;
+  pdfUrl: string;
+  type: string;
+  sharedType?: string;
+  // các trường khác nếu cần
 }
 
-interface GroupedContent {
+// 2. Cập nhật Interface MaterialsObject
+interface MaterialsObject {
+  general: MaterialItem[];
+  reference: MaterialItem[];
+  slide: MaterialItem[];
+}
+
+// Interface cho object "course" lồng bên trong
+interface CourseInfo {
+  _id: string;
+  courseCode: string;
+  courseName: string;
+  department: string;
+  description: string;
+  duration?: string;
+  semester?: string;
+  classGroups?: string; // JSON trả về string dạng "['CC01', ...]"
+  capacity?: number;
+  tutors?: string; // JSON trả về string dạng "['Name', ...]"
+}
+
+// Interface chính cho response từ API /matching/:id
+export interface CourseDetail {
+  _id: string;
+  courseCode: string; // Mã môn của lớp học phần (VD: CO3069)
+  classGroup: string; // Nhóm lớp (VD: CC01)
+  tutor: string; // Tên giảng viên đứng lớp này
+  students: string[]; // Danh sách email sinh viên
+  registeredCount: number;
+  sessions: Session[]; // Lịch học
+  status: string;
+  semester: string;
+  materials: MaterialsObject;
+  course: CourseInfo; // Thông tin chi tiết môn học gốc
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GroupedContent {
   type: string;
   items: any[];
 }
 
 interface CourseDetailClientProps {
-  currentUser: User;
-  courseDetail: CourseDetail;
   courseId: string;
 }
 
-// Hàm helper để nhóm tài liệu, chuyển nó vào đây
-function groupMaterialsByCategory(materials: any[]): GroupedContent[] {
-    if (!materials || materials.length === 0) return [];
-    const grouped = materials.reduce((acc, material) => {
-        const category = material.category || 'General';
-        if (!acc[category]) {
-            acc[category] = { type: category, items: [] };
-        }
-        acc[category].items.push(material);
-        return acc;
-    }, {});
-    return Object.values(grouped) as GroupedContent[];
+// Hàm helper để nhóm tài liệu
+function groupMaterials(
+  materials: MaterialsObject | undefined
+): GroupedContent[] {
+  if (!materials) return [];
+  return Object.entries(materials)
+    .map(([category, items]) => ({
+      type: category.charAt(0).toUpperCase() + category.slice(1),
+      items: items || [],
+    }))
+    .filter((group) => group.items.length > 0);
 }
 
+export default function CourseDetailClient({
+  courseId,
+}: CourseDetailClientProps) {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [courseDetail, setCourseDetail] = useState<CourseDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-export default function CourseDetailClient({ currentUser, courseDetail, courseId }: CourseDetailClientProps) {
-  // Xử lý dữ liệu bên trong Client Component
-  const courseContent = groupMaterialsByCategory(courseDetail.materials || []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const API_URL =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-  // Logic render có điều kiện giờ đây nằm hoàn toàn trên client
-  return currentUser.role === 'Tutor' 
-    ? <TutorView courseContent={courseContent} courseId={courseId} /> 
-    : <StudentView courseContent={courseContent} />;
+        // 2. Sửa đường dẫn API cho đúng: /api/matching/${courseId}
+        const [userResponse, courseResponse] = await Promise.all([
+          fetch(`${API_URL}/api/auth/verify`, {
+            method: "POST",
+            credentials: "include",
+          }),
+          fetch(`${API_URL}/api/matching/${courseId}`, {
+            credentials: "include",
+          }),
+        ]);
+
+        if (!userResponse.ok) {
+          throw new Error("Authentication failed. Please log in.");
+        }
+        const userData = await userResponse.json();
+        setCurrentUser(userData);
+
+        if (!courseResponse.ok) {
+          throw new Error("Failed to load course details.");
+        }
+        const courseData = await courseResponse.json();
+        setCourseDetail(courseData);
+      } catch (err: any) {
+        console.error("Error fetching data:", err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [courseId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="p-8 text-center text-red-500">{error}</p>;
+  }
+
+  if (!currentUser || !courseDetail) {
+    return <p className="p-8 text-center text-gray-500">No data available.</p>;
+  }
+
+  const courseContent = groupMaterials(courseDetail.materials);
+
+  return currentUser.role === "Tutor" ? (
+    <TutorView
+      courseContent={courseContent}
+      courseDetail={courseDetail}
+      courseId={courseId}
+    />
+  ) : (
+    <StudentView courseContent={courseContent} courseDetail={courseDetail} />
+  );
 }

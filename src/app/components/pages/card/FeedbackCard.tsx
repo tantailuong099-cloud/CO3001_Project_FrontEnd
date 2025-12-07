@@ -1,26 +1,29 @@
-import { Star } from 'lucide-react';
+import { Star, User } from "lucide-react";
 
-interface FeedbackProps {
-  id: string;
-  author: {
-    _id: string;
-    name: string;
-    email: string;
-  };  content: string;
-  rating: number;
-}
-
-export default function FeedbackCard({ feedback }: { feedback: FeedbackProps }) {
+export default function FeedbackCard({ feedback }: { feedback: any }) {
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200 flex flex-col justify-between h-full">
-      <div>
-        <p className="font-semibold text-sm text-gray-800 mb-2">{feedback.author.name}</p>
-        <p className="text-gray-600 text-sm">{feedback.content}</p>
+    <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+            <User size={16} />
+          </div>
+          <div>
+            {/* Ẩn danh hoặc hiện tên nếu có populate author */}
+            <p className="text-sm font-semibold text-gray-800">Student</p>
+            <p className="text-xs text-gray-400">
+              {new Date(feedback.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center text-yellow-500">
+          <span className="font-bold mr-1">{feedback.rating}</span>
+          <Star size={14} fill="currentColor" />
+        </div>
       </div>
-      <div className="flex items-center mt-3">
-        <Star size={16} className="text-yellow-500" />
-        <span className="ml-1 text-sm font-bold text-gray-700">{feedback.rating}</span>
-      </div>
+      <p className="text-gray-700 text-sm leading-relaxed">
+        {feedback.content}
+      </p>
     </div>
   );
 }
