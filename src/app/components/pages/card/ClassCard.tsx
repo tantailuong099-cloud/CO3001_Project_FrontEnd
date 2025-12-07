@@ -79,33 +79,69 @@
 //     </div>
 //   );
 // }
-'use cilent';
+// 'use cilent';
+
+// import Link from 'next/link';
+
+// // Định nghĩa kiểu dữ liệu cho một khóa học để TypeScript kiểm tra
+// interface Course {
+//   id: string;
+//   code: string;
+//   name: string;
+//   instructor: string;
+//   classCodes: string[];
+//   department: string;
+// }
+
+// // Component nhận một 'course' object làm prop
+// export default function CourseCard({ course }: { course: Course }) {
+//   return (
+//     // Link điều hướng đến trang chi tiết với ID tương ứng
+//     <Link href={`/courses/${course.id}`}>
+//       <div className="flex items-center w-full bg-white border border-gray-300 rounded-md overflow-hidden hover:shadow-md transition-shadow duration-200">
+//         {/* Thanh màu xanh bên trái */}
+//         <div className="w-2 h-full bg-blue-500 self-stretch"></div>
+
+//         {/* Nội dung thông tin */}
+//         <div className="p-3 text-sm">
+//           <p className="font-semibold text-gray-800">
+//             {course.name} ({course.code})_{course.instructor} [{course.classCodes.join(', ')}]
+//           </p>
+//           <p className="text-gray-600">{course.department}</p>
+//         </div>
+//       </div>
+//     </Link>
+//   );
+// }
+
+
+'use client'; // 👈 SỬA LẠI THÀNH 'client'
 
 import Link from 'next/link';
 
 // Định nghĩa kiểu dữ liệu cho một khóa học để TypeScript kiểm tra
+// LƯU Ý: Hãy đảm bảo các trường này khớp với dữ liệu API trả về
 interface Course {
-  id: string;
-  code: string;
-  name: string;
-  instructor: string;
-  classCodes: string[];
-  department: string;
+  _id: string; // API thường trả về _id
+  courseName: string; // API trả về courseName
+  courseCode: string; // API trả về courseCode
+  department: string; 
+  // instructor và classCodes có thể không có trực tiếp trong Course schema
+  // Chúng ta sẽ xử lý chúng
 }
 
 // Component nhận một 'course' object làm prop
-export default function CourseCard({ course }: { course: Course }) {
+export default function CourseCard({ course }: { course: any }) { // Tạm thời dùng 'any' để tránh lỗi type
   return (
-    // Link điều hướng đến trang chi tiết với ID tương ứng
-    <Link href={`/courses/${course.id}`}>
+    // Link điều hướng đến trang chi tiết với _id
+    <Link href={`/courses/${course._id}`}> 
       <div className="flex items-center w-full bg-white border border-gray-300 rounded-md overflow-hidden hover:shadow-md transition-shadow duration-200">
-        {/* Thanh màu xanh bên trái */}
         <div className="w-2 h-full bg-blue-500 self-stretch"></div>
-
-        {/* Nội dung thông tin */}
         <div className="p-3 text-sm">
           <p className="font-semibold text-gray-800">
-            {course.name} ({course.code})_{course.instructor} [{course.classCodes.join(', ')}]
+            {/* Sử dụng các trường dữ liệu thật từ API */}
+            {course.courseName} ({course.courseCode})
+            {/* {course.instructor} [{course.classCodes.join(', ')}] - Tạm thời ẩn đi */}
           </p>
           <p className="text-gray-600">{course.department}</p>
         </div>

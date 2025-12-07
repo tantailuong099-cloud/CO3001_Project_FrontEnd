@@ -35,9 +35,7 @@ export default function AdminProfileClient() {
         setIsLoading(true);
 
         // Bước 1: Gọi API verify để lấy userId của user đang đăng nhập
-        const verifyResponse = await api.post<VerifyResponse>(
-          "/api/auth/verify"
-        );
+        const verifyResponse = await api.post<VerifyResponse>("/api/auth/verify");
         const { userId } = verifyResponse;
 
         if (!userId) {
