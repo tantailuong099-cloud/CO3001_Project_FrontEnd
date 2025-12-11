@@ -88,7 +88,7 @@ export default function AddNewCoursePage() {
   useEffect(() => {
     async function fetchTutors() {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/user/Tutor`, {
+        const res = await fetch(`${BACKEND_URL}/api/user/role/Tutor`, {
           credentials: "include",
         });
         if (!res.ok) throw new Error("Failed to fetch tutors");
