@@ -43,8 +43,8 @@ export default function ProgramCourseCard({
   // Normalize tutors into array of strings
   const tutorList: string[] = Array.isArray(tutors)
     ? tutors
-    : typeof tutors === "string"
-    ? tutors.replace(/[\[\]']/g, "").split(",").map((t) => t.trim())
+    : tutors
+    ? [String(tutors)]
     : [];
 
   const groupList: string[] = Array.isArray(classGroups)

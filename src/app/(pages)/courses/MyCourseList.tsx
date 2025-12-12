@@ -16,7 +16,13 @@ interface ClassGroup {
   course: {
     courseName: string;
     department: string;
+    semester: string; 
   };
+}
+
+interface Tutor {
+  _id: string;
+  name: string;
 }
 
 // Type cho dữ liệu đã được nhóm theo học kỳ
@@ -41,6 +47,14 @@ export default function MyCourseList() {
           credentials: "include",
         });
 
+        const tutorRes = await fetch(`${API_URL}/api/user/role/Tutor`, {
+          credentials: "include",
+        });
+        const tutorData = await tutorRes.json();
+        const tutors: Tutor[] = tutorData.data || tutorData;
+        const tutorNameMap: Record<string, string> = {};
+        tutors.forEach(t => tutorNameMap[t._id] = t.name);
+
         if (!response.ok) {
           const errorData = await response.json();
           // Lỗi 401 thường do chưa đăng nhập
@@ -57,7 +71,7 @@ export default function MyCourseList() {
 
         // Xử lý và nhóm dữ liệu
         const processedData = classGroups.reduce((acc, classGroup) => {
-          const semester = classGroup.semester || "Uncategorized";
+          const semester = classGroup.course.semester || "Uncategorized";
           if (!acc[semester]) {
             acc[semester] = [];
           }
@@ -66,7 +80,7 @@ export default function MyCourseList() {
             _id: classGroup._id,
             code: classGroup.courseCode,
             name: classGroup.course.courseName,
-            instructor: classGroup.tutor,
+            instructor: tutorNameMap[classGroup.tutor] || classGroup.tutor,
             department: classGroup.course.department,
             classCodes: [classGroup.classGroup],
           };

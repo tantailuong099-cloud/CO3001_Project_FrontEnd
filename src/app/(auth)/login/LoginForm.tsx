@@ -42,8 +42,6 @@ export default function LoginForm() {
       if (res) {
         // Lấy user info từ backend
         const userData = await api.post("/api/auth/verify", {});
-        console.log("UserData", userData);
-
         if (userData.role === "Admin") {
           router.push("/admin/dashboard");
         } else {
