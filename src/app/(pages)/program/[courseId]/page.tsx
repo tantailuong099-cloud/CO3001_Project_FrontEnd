@@ -90,6 +90,7 @@ export default function CourseGroupsPage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<"STUDENT" | "TUTOR" | "ADMIN" | null>(null);
 
   // FETCH DATA
   useEffect(() => {
@@ -102,14 +103,6 @@ export default function CourseGroupsPage() {
         const cjson = await courseRes.json();
         const courseData = cjson.data || cjson;
         setCourse(courseData);
-        
-        console.log("DEBUG courseData =", courseData);
-        console.log("DEBUG courseCode =", JSON.stringify(courseData.courseCode));
-        console.log(
-          "DEBUG Registration URL =",
-          `${BACKEND_URL}/api/matching/registrations?courseCode=${courseData.courseCode}`
-        );
-
 
         const regRes = await fetch(
           `${BACKEND_URL}/api/matching/registrations?courseId=${courseId}`,
@@ -117,11 +110,14 @@ export default function CourseGroupsPage() {
         );
         const rjson = await regRes.json();
         const regData = Array.isArray(rjson) ? rjson : (Array.isArray(rjson.data) ? rjson.data : []);
-
-        console.log("DEBUG regRes status =", regRes.status);
-        console.log("DEBUG rjson =", rjson);
-
         setRegistrations(regData);
+
+        const userRes = await fetch(`${BACKEND_URL}/api/auth/verify`, {
+          method: "POST",
+          credentials: "include",
+        });
+        const userJson = await userRes.json();
+        setUserRole(userJson.role?.toLowerCase());
       } catch (err) {
         console.error("Failed to load course data:", err);
       } finally {
@@ -291,7 +287,7 @@ export default function CourseGroupsPage() {
               registeredCount={cardData.registeredCount}
               capacity={course.capacity}
               status={course.status}
-              canRegister={ canRegister }
+              canRegister={ canRegister && userRole === "student"}
               onRegister={() => handleRegister(group)}
             />
           );
