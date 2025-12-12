@@ -91,6 +91,7 @@ export default function CourseGroupsPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<"STUDENT" | "TUTOR" | "ADMIN" | null>(null);
+  const [studentEmail, setStudentEmail] = useState<string | null>(null);
 
   // FETCH DATA
   useEffect(() => {
@@ -118,6 +119,7 @@ export default function CourseGroupsPage() {
         });
         const userJson = await userRes.json();
         setUserRole(userJson.role?.toLowerCase());
+        setStudentEmail(userJson.email);   // <-- save email here
       } catch (err) {
         console.error("Failed to load course data:", err);
       } finally {
@@ -137,8 +139,10 @@ export default function CourseGroupsPage() {
   }
 
   // Normalize class groups
-  const groupList: string[] = normalizeClassGroups(course.classGroups);
-  console.log("DEBUG groupList =", groupList);
+  const groupList = Array.from(
+    new Set(registrations.map((r) => r.classGroup))
+  );
+
 
   // Registration timeline
   const today = new Date();
@@ -202,6 +206,23 @@ export default function CourseGroupsPage() {
     }
   }
 
+  async function handleUnregister(group: string) {
+    const reg = registrations.find((r) => r.classGroup === group);
+    if (!reg) return alert("Cannot unregister.");
+
+    const res = await fetch(`${BACKEND_URL}/api/matching/unregister`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registrationId: reg._id }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data.message || "Unregister failed");
+
+    alert("Unregistered!");
+    window.location.reload();
+  }
 
   return (
     <div className="py-10 px-[30px] space-y-8">
@@ -269,6 +290,7 @@ export default function CourseGroupsPage() {
           // Final canRegister: registration window must be open OR course status allows it, and class not full
           const isFull = (cardData.registeredCount || 0) >= (course.capacity || 0);
           const canRegister = (inRegistrationWindow || registrationOpenByStatus) && !isFull;
+          const isRegistered = cardData.students.includes(studentEmail ?? "");
 
           // Optional label you can pass to the card
           let registerLabel: string | undefined = undefined;
@@ -287,8 +309,10 @@ export default function CourseGroupsPage() {
               registeredCount={cardData.registeredCount}
               capacity={course.capacity}
               status={course.status}
-              canRegister={ canRegister && userRole === "student"}
+              canRegister={canRegister && userRole === "student" && !isRegistered}
+              isRegistered={isRegistered}
               onRegister={() => handleRegister(group)}
+              onUnregister={() => handleUnregister(group)}
             />
           );
         })}

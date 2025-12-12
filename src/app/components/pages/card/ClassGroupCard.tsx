@@ -19,6 +19,8 @@ interface ClassGroupCardProps {
   status: string;
   canRegister: boolean;
   onRegister?: () => void;
+  isRegistered: boolean;
+  onUnregister?: () => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -37,9 +39,10 @@ export default function ClassGroupCard({
   status,
   canRegister,
   onRegister,
+  isRegistered,
+  onUnregister
 }: ClassGroupCardProps) {
   
-
   return (
     <div className="border rounded-2xl bg-white shadow-sm hover:shadow-md transition-all p-6 space-y-6">
 
@@ -98,14 +101,23 @@ export default function ClassGroupCard({
       <hr className="border-gray-200" />
 
       {/* REGISTER BUTTON */}
-      {canRegister ? (
+      {isRegistered ? (
         <button
-          onClick={onRegister}
-          className="w-full px-5 py-2 rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700 transition-all"
+          onClick={onUnregister}
+          className="w-full px-5 py-2 rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 transition-all"
         >
-          Register for Class Group
+          Unregister
         </button>
-      ) : null}
+      ) : (
+        canRegister && (
+          <button
+            onClick={onRegister}
+            className="w-full px-5 py-2 rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700 transition-all"
+          >
+            Register for Class Group
+          </button>
+        )
+      )}
     </div>
   );
 }
