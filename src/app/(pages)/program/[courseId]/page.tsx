@@ -90,6 +90,8 @@ export default function CourseGroupsPage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState<"STUDENT" | "TUTOR" | "ADMIN" | null>(null);
+  const [studentEmail, setStudentEmail] = useState<string | null>(null);
 
   // FETCH DATA
   useEffect(() => {
@@ -102,26 +104,22 @@ export default function CourseGroupsPage() {
         const cjson = await courseRes.json();
         const courseData = cjson.data || cjson;
         setCourse(courseData);
-        
-        console.log("DEBUG courseData =", courseData);
-        console.log("DEBUG courseCode =", JSON.stringify(courseData.courseCode));
-        console.log(
-          "DEBUG Registration URL =",
-          `${BACKEND_URL}/api/matching/registrations?courseCode=${courseData.courseCode}`
-        );
-
 
         const regRes = await fetch(
-          `${BACKEND_URL}/api/matching/registrations?courseCode=${courseData.courseCode}`,
+          `${BACKEND_URL}/api/matching/registrations?courseId=${courseId}`,
           { credentials: "include" }
         );
         const rjson = await regRes.json();
         const regData = Array.isArray(rjson) ? rjson : (Array.isArray(rjson.data) ? rjson.data : []);
-
-        console.log("DEBUG regRes status =", regRes.status);
-        console.log("DEBUG rjson =", rjson);
-
         setRegistrations(regData);
+
+        const userRes = await fetch(`${BACKEND_URL}/api/auth/verify`, {
+          method: "POST",
+          credentials: "include",
+        });
+        const userJson = await userRes.json();
+        setUserRole(userJson.role?.toLowerCase());
+        setStudentEmail(userJson.email);   // <-- save email here
       } catch (err) {
         console.error("Failed to load course data:", err);
       } finally {
@@ -141,8 +139,10 @@ export default function CourseGroupsPage() {
   }
 
   // Normalize class groups
-  const groupList: string[] = normalizeClassGroups(course.classGroups);
-  console.log("DEBUG groupList =", groupList);
+  const groupList = Array.from(
+    new Set(registrations.map((r) => r.classGroup))
+  );
+
 
   // Registration timeline
   const today = new Date();
@@ -163,6 +163,66 @@ export default function CourseGroupsPage() {
     ongoing: "bg-blue-200 text-blue-800",
     completed: "bg-red-200 text-red-800",
   };
+
+  async function handleRegister(group: string) {
+    if (!course) return;
+
+    // find registration doc for this group
+    const reg = registrations.find((r) => r.classGroup === group);
+    if (!reg) {
+      alert("This class group is not open for registration (no registration record).");
+      return;
+    }
+
+    const registrationId = reg._id;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/matching/register`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          registrationId
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
+
+      alert(`Successfully registered for ${course.courseCode} — ${group}`);
+
+      // Update UI
+      window.location.reload();
+
+    } catch (err) {
+      console.error("Register error:", err);
+      alert("Something went wrong.");
+    }
+  }
+
+  async function handleUnregister(group: string) {
+    const reg = registrations.find((r) => r.classGroup === group);
+    if (!reg) return alert("Cannot unregister.");
+
+    const res = await fetch(`${BACKEND_URL}/api/matching/unregister`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ registrationId: reg._id }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) return alert(data.message || "Unregister failed");
+
+    alert("Unregistered!");
+    window.location.reload();
+  }
 
   return (
     <div className="py-10 px-[30px] space-y-8">
@@ -207,24 +267,52 @@ export default function CourseGroupsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {groupList.map((group) => {
           const reg = registrations.find((r) => r.classGroup === group);
-          if (!reg) return null; // hide empty groups
+          const cardData: Registration = reg ?? {
+            _id: "", // empty when not exists
+            courseCode: course.courseCode,
+            classGroup: group,
+            tutor: null,
+            students: [],
+            registeredCount: 0,
+            sessions: [],
+            status: "", // registration has no status by default
+          };
+
+          // Determine if registration window is active for the course
+          const now = new Date();
+          const start = new Date(course.registrationStart);
+          const end = new Date(course.registrationEnd);
+          const inRegistrationWindow = now >= start && now <= end;
+
+          // Option A: treat course.status === 'registration' as advisory; also require date window
+          const registrationOpenByStatus = course.status === "registration";
+
+          // Final canRegister: registration window must be open OR course status allows it, and class not full
+          const isFull = (cardData.registeredCount || 0) >= (course.capacity || 0);
+          const canRegister = (inRegistrationWindow || registrationOpenByStatus) && !isFull;
+          const isRegistered = cardData.students.includes(studentEmail ?? "");
+
+          // Optional label you can pass to the card
+          let registerLabel: string | undefined = undefined;
+          if (isFull) registerLabel = "Class Full";
+          else if (!inRegistrationWindow && course.status !== "registration")
+            registerLabel = "Registration Not Open";
+          // You can refine labels further (e.g., check course.status === 'completed')
 
           return (
             <ClassGroupCard
               key={group}
               group={group}
-              tutor={reg?.tutor ?? null}
-              sessions={reg?.sessions ?? []}
-              students={reg?.students ?? []}
-              registeredCount={reg?.registeredCount ?? 0}
+              tutor={cardData.tutor}
+              sessions={cardData.sessions}
+              //students={cardData.students}
+              registeredCount={cardData.registeredCount}
               capacity={course.capacity}
-              status={reg?.status ?? "created"}
-              canRegister={
-                reg &&
-                (reg.status === "active" || reg.status === "registration") &&
-                canRegisterCourse()
-              }
-              onRegister={() => console.log("Registering for", group)}
+              status={course.status}
+              canRegister={canRegister && userRole === "student" && !isRegistered}
+              isRegistered={isRegistered}
+              onRegister={() => handleRegister(group)}
+              onUnregister={() => handleUnregister(group)}
             />
           );
         })}

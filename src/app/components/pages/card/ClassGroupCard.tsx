@@ -1,3 +1,5 @@
+// src\app\components\pages\card\ClassGroupCard.tsx
+
 "use client";
 
 import { FaClock, FaUser } from "react-icons/fa";
@@ -17,15 +19,14 @@ interface ClassGroupCardProps {
   status: string;
   canRegister: boolean;
   onRegister?: () => void;
+  isRegistered: boolean;
+  onUnregister?: () => void;
 }
 
 const statusColors: Record<string, string> = {
-  created: "bg-gray-200 text-gray-700",
   upcoming: "bg-yellow-200 text-yellow-800",
   registration: "bg-green-200 text-green-800",
-  active: "bg-green-200 text-green-800",
   ongoing: "bg-blue-200 text-blue-800",
-  closed: "bg-red-200 text-red-800",
   completed: "bg-red-200 text-red-800",
 };
 
@@ -38,7 +39,10 @@ export default function ClassGroupCard({
   status,
   canRegister,
   onRegister,
+  isRegistered,
+  onUnregister
 }: ClassGroupCardProps) {
+  
   return (
     <div className="border rounded-2xl bg-white shadow-sm hover:shadow-md transition-all p-6 space-y-6">
 
@@ -97,17 +101,23 @@ export default function ClassGroupCard({
       <hr className="border-gray-200" />
 
       {/* REGISTER BUTTON */}
-      <button
-        disabled={!canRegister}
-        onClick={canRegister ? onRegister : undefined}
-        className={`w-full px-5 py-2 rounded-lg text-white font-medium transition-all ${
-          canRegister
-            ? "bg-blue-600 hover:bg-blue-700"
-            : "bg-gray-400 cursor-not-allowed"
-        }`}
-      >
-        {canRegister ? "Register for Class Group" : "Registration Closed"}
-      </button>
+      {isRegistered ? (
+        <button
+          onClick={onUnregister}
+          className="w-full px-5 py-2 rounded-lg text-white font-medium bg-red-600 hover:bg-red-700 transition-all"
+        >
+          Unregister
+        </button>
+      ) : (
+        canRegister && (
+          <button
+            onClick={onRegister}
+            className="w-full px-5 py-2 rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700 transition-all"
+          >
+            Register for Class Group
+          </button>
+        )
+      )}
     </div>
   );
 }

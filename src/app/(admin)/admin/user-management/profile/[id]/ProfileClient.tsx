@@ -22,7 +22,7 @@ interface VerifyResponse {
   // Các trường khác như email, role...
 }
 
-export default function AdminProfileClient() {
+export default function AdminProfileClient({userId}: any) {
   const router = useRouter();
   const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,9 +38,9 @@ export default function AdminProfileClient() {
         const verifyResponse = await api.post<VerifyResponse>(
           "/api/auth/verify"
         );
-        const { userId } = verifyResponse;
+        const { Id } = verifyResponse;
 
-        if (!userId) {
+        if (!Id) {
           throw new Error("Authentication failed. Could not get user ID.");
         }
 

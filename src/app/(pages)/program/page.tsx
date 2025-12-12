@@ -28,6 +28,15 @@ interface Tutor {
   name: string;
 }
 
+interface Registration {
+  _id: string;
+  classGroup: string;
+  tutor?: string | null;
+  students?: string[];
+  registeredCount?: number;
+  sessions?: any[];
+}
+
 export default function ProgramPage() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -52,8 +61,27 @@ export default function ProgramPage() {
         const cJson = await courseRes.json();
         const tJson = await tutorRes.json();
 
-        setCourses(Array.isArray(cJson) ? cJson : cJson.data || []);
+        const loadedCourses = Array.isArray(cJson) ? cJson : cJson.data || [];
         setTutors(Array.isArray(tJson) ? tJson : tJson.data || []);
+
+        // 🔥 NEW: fetch real class groups for each course
+        const coursesWithRealGroups = await Promise.all(
+          loadedCourses.map(async (course: Course) => {
+            const regRes = await fetch(
+              `${BACKEND_URL}/api/matching/registrations?courseId=${course._id}`,
+              { credentials: "include" }
+            );
+            const rjson = await regRes.json();
+            const regs = Array.isArray(rjson) ? rjson : rjson.data || [];
+
+            return {
+              ...course,
+              classGroups: regs.map((r: Registration) => r.classGroup) // 👈 true source of groups
+            };
+          })
+        );
+
+        setCourses(coursesWithRealGroups);
       } catch (err) {
         console.error("Failed to load:", err);
       } finally {
@@ -64,6 +92,7 @@ export default function ProgramPage() {
     fetchAll();
   }, [BACKEND_URL]);
 
+  
   // -----------------------------------------------
   // BUILD tutorId → tutorName lookup
   // -----------------------------------------------
@@ -80,10 +109,10 @@ export default function ProgramPage() {
     const term = searchTerm.toLowerCase();
 
     return courses.filter((c) => {
-      const isClosed = c.status === "completed";
+      const isCompleted = c.status === "completed";
 
-      if (!showClosed && isClosed) return false;
-      if (showClosed && !isClosed) return false;
+      if (!showClosed && isCompleted) return false;
+      if (showClosed && !isCompleted) return false;
 
       return (
         c.courseCode.toLowerCase().includes(term) ||

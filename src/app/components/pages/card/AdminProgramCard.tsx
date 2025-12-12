@@ -10,13 +10,25 @@ import DeleteButton from "../button/DeleteButton";
 
 // Map backend status to UI display
 export const statusMap: Record<
-  "created" | "tutor_assigned" | "active" | "closed",
+  "upcoming" | "registration" | "ongoing" | "completed",
   { label: string; classes: string }
 > = {
-  created: { label: "Created", classes: "bg-gray-100 text-gray-700" },
-  tutor_assigned: { label: "Tutor Assigned", classes: "bg-yellow-100 text-yellow-800" },
-  active: { label: "Ongoing", classes: "bg-blue-100 text-blue-800" },
-  closed: { label: "Closed", classes: "bg-green-100 text-green-800" },
+  upcoming: {
+    label: "Upcoming",
+    classes: "bg-yellow-100 text-yellow-800",
+  },
+  registration: {
+    label: "Registration",
+    classes: "bg-green-100 text-green-800",
+  },
+  ongoing: {
+    label: "Ongoing",
+    classes: "bg-blue-100 text-blue-800",
+  },
+  completed: {
+    label: "Completed",
+    classes: "bg-gray-300 text-gray-700",
+  },
 };
 
 export interface AdminProgramCardProps {
@@ -31,7 +43,7 @@ export interface AdminProgramCardProps {
     registeredCount: number;
     capacity?: number;
     sessions: { day: string; startTime: string; endTime: string }[];
-    status: "created" | "tutor_assigned" | "active" | "closed";
+    status?: string | null;
     updatedAt?: string;
   };
   onView?: (id: string) => void;
@@ -61,7 +73,21 @@ export default function AdminProgramCard({
   } = classGroup;
 
   const router = useRouter();
-  const statusInfo = statusMap[status];
+  const statusMap: Record<string, { label: string; classes: string }> = {
+    upcoming:      { label: "Upcoming",     classes: "bg-yellow-100 text-yellow-800" },
+    registration:  { label: "Registration", classes: "bg-green-100 text-green-800" },
+    ongoing:       { label: "Ongoing",      classes: "bg-blue-100 text-blue-800" },
+    completed:     { label: "Completed",    classes: "bg-gray-300 text-gray-700" },
+  };
+
+  const safeStatus = status?.toLowerCase() || "unknown";
+
+  const statusInfo = statusMap[safeStatus] || {
+    label: safeStatus.toUpperCase(),
+    classes: "bg-gray-200 text-gray-600"
+  };
+
+
 
   const handleView = () => router.push(`/admin/program/${courseCode}/${group}`);
   const handleEdit = () => router.push(`/admin/program/edit/${courseCode}/${group}`);

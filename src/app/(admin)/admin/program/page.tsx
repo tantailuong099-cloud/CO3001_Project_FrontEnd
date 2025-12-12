@@ -19,7 +19,7 @@ export interface Registration {
   registeredCount: number;
   capacity?: number;
   sessions: { day: string; startTime: string; endTime: string }[];
-  status: "created" | "tutor_assigned" | "active" | "closed";
+  status?: string | null;
   updatedAt?: string;
   courseName?: string;
   department?: string;
@@ -98,6 +98,29 @@ export default function ProgramAdminPage() {
           if (c.courseCode) coursesMap[c.courseCode] = c;
         });
 
+        // -------------------------------
+        // Fetch tutors (ID → real name)
+        // -------------------------------
+        const tutorRes = await fetch(`${BACKEND_URL}/api/user/role/Tutor`, {
+          credentials: "include",
+        });
+        const tutorRaw = await tutorRes.json();
+
+        // API wrapper fix (same pattern as courses/registrations)
+        const tutorList: any[] = Array.isArray(tutorRaw)
+          ? tutorRaw
+          : Array.isArray(tutorRaw.data)
+            ? tutorRaw.data
+            : [];
+
+        // Build quick lookup: { "6929...": "Quản Thành Thơ" }
+        const tutorMap: Record<string, string> = {};
+        tutorList.forEach((t: any) => {
+          if (t._id) {
+            tutorMap[String(t._id)] = t.name || "Unknown Tutor";
+          }
+        });
+
         // Fetch registrations
         const regRes = await fetch(`${BACKEND_URL}/api/matching/registrations`, {
           credentials: "include",
@@ -110,18 +133,34 @@ export default function ProgramAdminPage() {
             : [];
 
         // Merge course info into registrations
+        // build lookup maps
+        const coursesByCode: Record<string, any> = {};
+        const coursesById: Record<string, any> = {};
+        coursesData.forEach((c: any) => {
+          if (c.courseCode) coursesByCode[c.courseCode] = c;
+          if (c._id) coursesById[String(c._id)] = c;
+        });
+
         const enriched: Registration[] = regData.map((r: any) => {
-          const course = coursesMap[r.courseCode] || {};
-          console.log("REG courseCode:", r.courseCode, "courseName:", COURSE_NAMES[r.courseCode]);
+          const courseFromId = r.course ? coursesById[String(r.course)] : undefined;
+          const courseFromCode = r.courseCode ? coursesByCode[r.courseCode] : undefined;
+          const course = courseFromId || courseFromCode || {};
 
           return {
             ...r,
-            courseName: course.courseName || COURSE_NAMES[r.courseCode],
+
+            // Course info
+            courseName: course.courseName || COURSE_NAMES[r.courseCode] || r.courseCode,
             semester: course.semester || DEFAULT_SEMESTER,
             capacity: course.capacity || DEFAULT_CAPACITY,
             department: course.department || "—",
+            status: course.status ?? undefined,
+
+            // ⭐ Tutor: convert tutor ID to real name
+            tutor: r.tutor ? tutorMap[String(r.tutor)] : "TBD",
           };
         });
+
 
         setRegistrations(enriched);
       } catch (err) {
