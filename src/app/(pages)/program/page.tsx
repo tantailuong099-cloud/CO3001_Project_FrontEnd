@@ -80,10 +80,10 @@ export default function ProgramPage() {
     const term = searchTerm.toLowerCase();
 
     return courses.filter((c) => {
-      const isClosed = c.status === "completed";
+      const isCompleted = c.status === "completed";
 
-      if (!showClosed && isClosed) return false;
-      if (showClosed && !isClosed) return false;
+      if (!showClosed && isCompleted) return false;
+      if (showClosed && !isCompleted) return false;
 
       return (
         c.courseCode.toLowerCase().includes(term) ||

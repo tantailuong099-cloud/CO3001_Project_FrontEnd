@@ -112,7 +112,7 @@ export default function CourseGroupsPage() {
 
 
         const regRes = await fetch(
-          `${BACKEND_URL}/api/matching/registrations?courseCode=${courseData.courseCode}`,
+          `${BACKEND_URL}/api/matching/registrations?courseId=${courseData._id}`,
           { credentials: "include" }
         );
         const rjson = await regRes.json();
@@ -164,6 +164,49 @@ export default function CourseGroupsPage() {
     completed: "bg-red-200 text-red-800",
   };
 
+  async function handleRegister(group: string) {
+    if (!course) return;
+
+    // find registration doc for this group
+    const reg = registrations.find((r) => r.classGroup === group);
+    if (!reg) {
+      alert("This class group is not open for registration (no registration record).");
+      return;
+    }
+
+    const registrationId = reg._id;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/matching/register`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          registrationId
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Registration failed");
+        return;
+      }
+
+      alert(`Successfully registered for ${course.courseCode} — ${group}`);
+
+      // Update UI
+      window.location.reload();
+
+    } catch (err) {
+      console.error("Register error:", err);
+      alert("Something went wrong.");
+    }
+  }
+
+
   return (
     <div className="py-10 px-[30px] space-y-8">
 
@@ -207,24 +250,49 @@ export default function CourseGroupsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {groupList.map((group) => {
           const reg = registrations.find((r) => r.classGroup === group);
-          if (!reg) return null; // hide empty groups
+          const cardData: Registration = reg ?? {
+            _id: "", // empty when not exists
+            courseCode: course.courseCode,
+            classGroup: group,
+            tutor: null,
+            students: [],
+            registeredCount: 0,
+            sessions: [],
+            status: "", // registration has no status by default
+          };
+
+          // Determine if registration window is active for the course
+          const now = new Date();
+          const start = new Date(course.registrationStart);
+          const end = new Date(course.registrationEnd);
+          const inRegistrationWindow = now >= start && now <= end;
+
+          // Option A: treat course.status === 'registration' as advisory; also require date window
+          const registrationOpenByStatus = course.status === "registration";
+
+          // Final canRegister: registration window must be open OR course status allows it, and class not full
+          const isFull = (cardData.registeredCount || 0) >= (course.capacity || 0);
+          const canRegister = (inRegistrationWindow || registrationOpenByStatus) && !isFull;
+
+          // Optional label you can pass to the card
+          let registerLabel: string | undefined = undefined;
+          if (isFull) registerLabel = "Class Full";
+          else if (!inRegistrationWindow && course.status !== "registration")
+            registerLabel = "Registration Not Open";
+          // You can refine labels further (e.g., check course.status === 'completed')
 
           return (
             <ClassGroupCard
               key={group}
               group={group}
-              tutor={reg?.tutor ?? null}
-              sessions={reg?.sessions ?? []}
-              students={reg?.students ?? []}
-              registeredCount={reg?.registeredCount ?? 0}
+              tutor={cardData.tutor}
+              sessions={cardData.sessions}
+              //students={cardData.students}
+              registeredCount={cardData.registeredCount}
               capacity={course.capacity}
-              status={reg?.status ?? "created"}
-              canRegister={
-                reg &&
-                (reg.status === "active" || reg.status === "registration") &&
-                canRegisterCourse()
-              }
-              onRegister={() => console.log("Registering for", group)}
+              status={course.status}
+              canRegister={ canRegister }
+              onRegister={() => handleRegister(group)}
             />
           );
         })}

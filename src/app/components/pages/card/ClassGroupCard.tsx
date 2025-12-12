@@ -20,12 +20,9 @@ interface ClassGroupCardProps {
 }
 
 const statusColors: Record<string, string> = {
-  created: "bg-gray-200 text-gray-700",
   upcoming: "bg-yellow-200 text-yellow-800",
   registration: "bg-green-200 text-green-800",
-  active: "bg-green-200 text-green-800",
   ongoing: "bg-blue-200 text-blue-800",
-  closed: "bg-red-200 text-red-800",
   completed: "bg-red-200 text-red-800",
 };
 
