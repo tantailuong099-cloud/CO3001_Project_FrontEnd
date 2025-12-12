@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, X } from "lucide-react";
-import Select from "react-select";
+import Select, { components } from "react-select";
 
 type CourseStatus = "upcoming" | "registration" | "ongoing" | "completed";
 
@@ -111,6 +111,20 @@ export default function AddNewCoursePage() {
     );
   };
 
+  const CheckboxOption = (props: any) => {
+    return (
+      <components.Option {...props}>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={props.isSelected}
+            onChange={() => null}
+          />
+          {props.label}
+        </div>
+      </components.Option>
+    );
+  };
 
 
   // -------------------------------
@@ -201,7 +215,6 @@ export default function AddNewCoursePage() {
 
 
   const handleGoBack = () => router.push("/admin/program");
-
 
   // -------------------------------
   // Submit Form
@@ -444,54 +457,30 @@ export default function AddNewCoursePage() {
             </div>
 
 
-            {/* Tutors */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tutor (each course has one tutor)
-              </label>
-              <Select
-                options={tutorOptions}
-                isMulti={false}
-                value={tutorOptions.filter((opt) => formData.tutors.includes(opt.value))}
-                onChange={(option) =>
-                  setFormData({ ...formData, tutors: option ? [option.value] : [] })
-                }
-                placeholder="Select tutor..."
-                classNamePrefix="select"
-                className="text-gray-800"  // affects wrapper
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    backgroundColor: "white",
-                    color: "#111827", // gray-900
-                    borderColor: "#d1d5db", // gray-300
-                  }),
-                  singleValue: (base) => ({
-                    ...base,
-                    color: "#111827", // selected text color
-                  }),
-                  input: (base) => ({
-                    ...base,
-                    color: "#111827", // typing text color
-                  }),
-                  placeholder: (base) => ({
-                    ...base,
-                    color: "#6b7280", // gray-500
-                  }),
-                  menu: (base) => ({
-                    ...base,
-                    backgroundColor: "white",
-                    color: "#111827",
-                  }),
-                  option: (base, state) => ({
-                    ...base,
-                    backgroundColor: state.isFocused ? "#e5e7eb" : "white", // gray-200 hover
-                    color: "#111827",
-                  }),
-                }}
-              />
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Tutors (select multiple)
+            </label>
 
-            </div>
+            <Select
+              options={tutorOptions}
+              isMulti
+              closeMenuOnSelect={false}
+              hideSelectedOptions={false}
+              components={{ Option: CheckboxOption }}
+              value={tutorOptions.filter((opt) => formData.tutors.includes(opt.value))}
+              onChange={(selectedOptions) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  tutors: selectedOptions.map((opt: any) => opt.value),
+                }));
+              }}
+              placeholder="Select tutors..."
+              className="text-gray-800"
+              classNamePrefix="react-select"
+            />
+          </div>
+
 
 
             {/* Number of Groups */}

@@ -112,7 +112,7 @@ export default function CourseGroupsPage() {
 
 
         const regRes = await fetch(
-          `${BACKEND_URL}/api/matching/registrations?courseId=${courseData._id}`,
+          `${BACKEND_URL}/api/matching/registrations?courseId=${courseId}`,
           { credentials: "include" }
         );
         const rjson = await regRes.json();
