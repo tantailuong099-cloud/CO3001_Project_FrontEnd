@@ -1,7 +1,7 @@
 // src/app/(pages)/my-course/page.tsx
 
 import type { Metadata } from "next";
-import CourseDropDown from "@/app/components/pages/button/CourseDropDown";
+// import CourseDropDown from "@/app/components/pages/button/CourseDropDown";
 import { getCurrentUser } from "@/lib/auth"; // Vẫn dùng để lấy role cho tiêu đề
 import MyCourseList from "./MyCourseList"; // 👈 Import component mới
 
@@ -20,7 +20,7 @@ export default async function CoursesPage() {
       <h1 className="text-2xl font-bold mb-4">
         {userRole === "Student" ? "My Enrolled Courses" : "My Assigned Classes"}
       </h1>
-      <CourseDropDown />
+      {/* <CourseDropDown /> */}
 
       {/* 👇 Gọi Client Component để nó tự fetch dữ liệu */}
       <MyCourseList />

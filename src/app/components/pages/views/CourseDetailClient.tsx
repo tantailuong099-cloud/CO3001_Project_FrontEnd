@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import StudentView from "./StudentView";
 import TutorView from "./TutorView";
 import { Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 // --- 1. Cập nhật Interface theo đúng JSON ---
 
@@ -139,6 +140,57 @@ export default function CourseDetailClient({
     fetchData();
   }, [courseId]);
 
+  // --- HÀM MỚI ĐỂ XỬ LÝ XÓA ---
+  const handleDeleteMaterial = async (
+    materialId: string,
+    sharedType: string
+  ) => {
+    // Hiển thị xác nhận trước khi xóa
+    if (
+      !confirm(
+        "Are you sure you want to delete this material? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+    const toastId = toast.loading("Deleting material...");
+
+    try {
+      const response = await fetch(`${API_URL}/api/materials/${materialId}`, {
+        method: "DELETE",
+        credentials: "include", // Đừng quên gửi cookie xác thực
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete material.");
+      }
+
+      // Xóa thành công, cập nhật UI ngay lập tức
+      toast.success("Material deleted successfully!", { id: toastId });
+
+      // Cập nhật state để xóa item khỏi giao diện
+      setCourseDetail((prevDetails) => {
+        if (!prevDetails) return null;
+
+        // Tạo một bản sao sâu của object để tránh thay đổi state trực tiếp
+        const newDetails = JSON.parse(JSON.stringify(prevDetails));
+
+        // Lọc ra item đã bị xóa
+        newDetails.materials[sharedType] = newDetails.materials[
+          sharedType
+        ].filter((item: MaterialItem) => item._id !== materialId);
+
+        return newDetails;
+      });
+    } catch (err: any) {
+      console.error("Deletion error:", err);
+      toast.error(err.message || "An error occurred.", { id: toastId });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -162,6 +214,7 @@ export default function CourseDetailClient({
       courseContent={courseContent}
       courseDetail={courseDetail}
       courseId={courseId}
+      onDeleteMaterial={handleDeleteMaterial}
     />
   ) : (
     <StudentView courseContent={courseContent} courseDetail={courseDetail} />

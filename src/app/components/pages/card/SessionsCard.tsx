@@ -32,6 +32,7 @@ interface SessionCardProps {
   iconName: string;
   isManageable?: boolean;
   defaultOpen?: boolean;
+  onDelete?: (materialId: string, sharedType: string) => void;
 }
 
 export default function SessionCard({
@@ -39,6 +40,7 @@ export default function SessionCard({
   iconName,
   isManageable = false,
   defaultOpen = false,
+  onDelete,
 }: SessionCardProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const Icon = iconMap[iconName] || iconMap.Default;
@@ -151,13 +153,8 @@ export default function SessionCard({
                   className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-red-50 rounded-md text-red-400 hover:text-red-600"
                   title="Delete material"
                   onClick={() => {
-                    if (
-                      confirm(
-                        `Are you sure you want to delete "${item.materialName}"?`
-                      )
-                    ) {
-                      console.log("Delete item ID:", item._id);
-                      // Gọi hàm props onDelete nếu có
+                    if (onDelete) {
+                      onDelete(item._id, section.type.toLowerCase());
                     }
                   }}
                 >

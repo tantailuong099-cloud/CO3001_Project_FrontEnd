@@ -35,14 +35,14 @@ export default function AdminProfileClient({userId}: any) {
         setIsLoading(true);
 
         // Bước 1: Gọi API verify để lấy userId của user đang đăng nhập
-        const verifyResponse = await api.post<VerifyResponse>(
-          "/api/auth/verify"
-        );
-        const { Id } = verifyResponse;
+        // const verifyResponse = await api.post<VerifyResponse>(
+        //   "/api/auth/verify"
+        // );
+        // const { Id } = verifyResponse;
 
-        if (!Id) {
-          throw new Error("Authentication failed. Could not get user ID.");
-        }
+        // if (!Id) {
+        //   throw new Error("Authentication failed. Could not get user ID.");
+        // }
 
         // Bước 2: Dùng userId lấy được để fetch thông tin chi tiết
         const adminData = await api.get<AdminProfile>(`/api/user/${userId}`);

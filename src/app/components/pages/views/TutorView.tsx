@@ -10,12 +10,14 @@ interface TutorViewProps {
   courseContent: GroupedContent[];
   courseDetail: CourseDetail; // 👈 Nhận thêm prop này
   courseId: string;
+  onDeleteMaterial: (materialId: string, sharedType: string) => void;
 }
 
 export default function TutorView({
   courseContent,
   courseDetail,
   courseId,
+  onDeleteMaterial,
 }: TutorViewProps) {
   const handleUploadSuccess = () => {
     // Cách đơn giản nhất để refresh là reload lại trang
@@ -47,6 +49,7 @@ export default function TutorView({
               iconName={section.type}
               isManageable={true}
               defaultOpen={section.type === "Reference"}
+              onDelete={onDeleteMaterial}
             />
           ))
         )}

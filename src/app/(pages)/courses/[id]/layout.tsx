@@ -39,7 +39,7 @@ export default async function CourseDetailLayout({
   return (
     <div className="flex h-[calc(100vh-128px)]">
       {/* Sidebar bên trái */}
-      <CourseSidebar />
+      {/* <CourseSidebar /> */}
 
       {/* Khu vực nội dung bên phải */}
       <div className="flex-1 flex flex-col overflow-hidden">

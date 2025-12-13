@@ -47,7 +47,7 @@ export default function Sider() {
   ];
 
   const settingsMenu = [
-    { icon: <FaGear />, label: "Cài đặt chung", href: "/admin/settings" },
+    //{ icon: <FaGear />, label: "Cài đặt chung", href: "/admin/settings" },
     {
       icon: <FaUserGear />,
       label: "Thông tin cá nhân",

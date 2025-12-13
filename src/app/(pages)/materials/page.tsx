@@ -26,7 +26,7 @@ async function getMaterials(): Promise<Material[]> {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
     const res = await fetch(`${API_URL}/api/materials`, {
       // Tăng thời gian cache (ví dụ: 10 phút) để không phải gọi API liên tục
-      next: { revalidate: 600 },
+      // next: { revalidate: 6 },
     });
 
     if (!res.ok) {
