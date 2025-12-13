@@ -1,9 +1,8 @@
-// src/app/(admin)/admin/program/page.tsx
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import Search from "@/app/components/pages/search/Search";
+import Search from "@/app/components/pages/search/Search"; // Import component Search đã sửa
 import AdminProgramCard from "@/app/components/pages/card/AdminProgramCard";
 import DeleteConfirmationModal from "@/app/components/pages/program-detail/DeleteConfirmationModal";
 import { PlusCircle } from "lucide-react";
@@ -13,7 +12,7 @@ import { PlusCircle } from "lucide-react";
 // -------------------------------
 export interface Registration {
   _id: string;
-  courseCode: string;       // course code
+  courseCode: string; // course code
   classGroup: string;
   tutor?: string;
   registeredCount: number;
@@ -25,7 +24,6 @@ export interface Registration {
   department?: string;
   semester?: string;
 }
-
 
 // -------------------------------
 // Map course codes to names & default semester/capacity
@@ -60,7 +58,6 @@ const DEFAULT_SEMESTER = "2025 Fall";
 const DEFAULT_CAPACITY = 30;
 const ITEMS_PER_PAGE = 5;
 
-
 // -------------------------------
 // ProgramAdminPage Component
 // -------------------------------
@@ -74,7 +71,8 @@ export default function ProgramAdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   // -------------------------------
   // Fetch courses and registrations
@@ -90,8 +88,8 @@ export default function ProgramAdminPage() {
         const coursesData: any[] = Array.isArray(coursesDataRaw)
           ? coursesDataRaw
           : Array.isArray(coursesDataRaw.data)
-            ? coursesDataRaw.data
-            : [];
+          ? coursesDataRaw.data
+          : [];
 
         const coursesMap: Record<string, any> = {};
         coursesData.forEach((c: any) => {
@@ -110,8 +108,8 @@ export default function ProgramAdminPage() {
         const tutorList: any[] = Array.isArray(tutorRaw)
           ? tutorRaw
           : Array.isArray(tutorRaw.data)
-            ? tutorRaw.data
-            : [];
+          ? tutorRaw.data
+          : [];
 
         // Build quick lookup: { "6929...": "Quản Thành Thơ" }
         const tutorMap: Record<string, string> = {};
@@ -122,15 +120,18 @@ export default function ProgramAdminPage() {
         });
 
         // Fetch registrations
-        const regRes = await fetch(`${BACKEND_URL}/api/matching/registrations`, {
-          credentials: "include",
-        });
+        const regRes = await fetch(
+          `${BACKEND_URL}/api/matching/registrations`,
+          {
+            credentials: "include",
+          }
+        );
         const regDataRaw = await regRes.json();
         const regData: any[] = Array.isArray(regDataRaw)
           ? regDataRaw
           : Array.isArray(regDataRaw.data)
-            ? regDataRaw.data
-            : [];
+          ? regDataRaw.data
+          : [];
 
         // Merge course info into registrations
         // build lookup maps
@@ -142,15 +143,20 @@ export default function ProgramAdminPage() {
         });
 
         const enriched: Registration[] = regData.map((r: any) => {
-          const courseFromId = r.course ? coursesById[String(r.course)] : undefined;
-          const courseFromCode = r.courseCode ? coursesByCode[r.courseCode] : undefined;
+          const courseFromId = r.course
+            ? coursesById[String(r.course)]
+            : undefined;
+          const courseFromCode = r.courseCode
+            ? coursesByCode[r.courseCode]
+            : undefined;
           const course = courseFromId || courseFromCode || {};
 
           return {
             ...r,
 
             // Course info
-            courseName: course.courseName || COURSE_NAMES[r.courseCode] || r.courseCode,
+            courseName:
+              course.courseName || COURSE_NAMES[r.courseCode] || r.courseCode,
             semester: course.semester || DEFAULT_SEMESTER,
             capacity: course.capacity || DEFAULT_CAPACITY,
             department: course.department || "—",
@@ -161,7 +167,6 @@ export default function ProgramAdminPage() {
           };
         });
 
-
         setRegistrations(enriched);
       } catch (err) {
         console.error("Failed to fetch data:", err);
@@ -169,7 +174,7 @@ export default function ProgramAdminPage() {
     }
 
     fetchData();
-  }, []);
+  }, [BACKEND_URL]);
 
   // -------------------------------
   // Delete modal handlers
@@ -190,12 +195,15 @@ export default function ProgramAdminPage() {
     setIsLoading(true);
 
     try {
-      const [courseCode, classGroup] = targetId.split('_');
+      const [courseCode, classGroup] = targetId.split("_");
 
-      const res = await fetch(`${BACKEND_URL}/api/matching/registrations/${courseCode}/${classGroup}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${BACKEND_URL}/api/matching/registrations/${courseCode}/${classGroup}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
 
       if (!res.ok) throw new Error("Delete failed");
 
@@ -204,7 +212,6 @@ export default function ProgramAdminPage() {
           (r) => !(r.courseCode === courseCode && r.classGroup === classGroup)
         )
       );
-
     } catch (err) {
       console.error("Failed to delete class group:", err);
     } finally {
@@ -218,10 +225,11 @@ export default function ProgramAdminPage() {
   // -------------------------------
   const filteredRegistrations = useMemo(() => {
     if (!searchTerm) return registrations;
-    return registrations.filter((r) =>
-      r.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.classGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.courseCode.toLowerCase().includes(searchTerm.toLowerCase())
+    return registrations.filter(
+      (r) =>
+        r.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.classGroup.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.courseCode.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [registrations, searchTerm]);
 
@@ -243,7 +251,8 @@ export default function ProgramAdminPage() {
     let end = Math.min(totalPages, currentPage + 2);
 
     if (currentPage <= 3) end = Math.min(totalPages, maxShown);
-    else if (currentPage >= totalPages - 2) start = Math.max(1, totalPages - (maxShown - 1));
+    else if (currentPage >= totalPages - 2)
+      start = Math.max(1, totalPages - (maxShown - 1));
 
     if (start > 1) {
       pages.push(1);
@@ -268,7 +277,9 @@ export default function ProgramAdminPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-10">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Course Administration</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Course Administration
+          </h1>
           <p className="text-gray-600 text-sm font-medium">Admin / Courses</p>
         </div>
         <button
@@ -288,7 +299,7 @@ export default function ProgramAdminPage() {
             value={searchTerm}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setSearchTerm(e.target.value);
-              setCurrentPage(1);
+              setCurrentPage(1); // Reset về trang 1 mỗi khi tìm kiếm
             }}
           />
         </div>
@@ -315,7 +326,10 @@ export default function ProgramAdminPage() {
             {paginatedRegistrations.map((reg) => (
               <AdminProgramCard
                 key={reg.courseCode + reg.classGroup}
-                classGroup={{ ...reg, id: reg.courseCode + "_" + reg.classGroup }}
+                classGroup={{
+                  ...reg,
+                  id: reg.courseCode + "_" + reg.classGroup,
+                }}
                 onDelete={openDeleteModal}
               />
             ))}
@@ -327,7 +341,6 @@ export default function ProgramAdminPage() {
       {totalPages > 1 && (
         <div className="flex justify-center mt-8">
           <div className="flex items-center space-x-2 bg-white p-3 rounded-xl shadow border">
-
             {/* Prev */}
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -345,21 +358,24 @@ export default function ProgramAdminPage() {
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`px-4 py-2 rounded-lg border font-semibold transition
-                    ${currentPage === page
-                      ? "bg-blue-600 text-white border-blue-600 shadow"
-                      : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                    ${
+                      currentPage === page
+                        ? "bg-blue-600 text-white border-blue-600 shadow"
+                        : "bg-gray-100 text-gray-900 hover:bg-gray-200"
                     }`}
                 >
                   {page}
                 </button>
               ) : (
-                <span key={`e-${index}`} className="px-3 text-gray-400">…</span>
+                <span key={`e-${index}`} className="px-3 text-gray-400">
+                  …
+                </span>
               )
             )}
 
             {/* Next */}
             <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="px-4 py-2 rounded-lg border font-medium 
                         hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
@@ -369,8 +385,6 @@ export default function ProgramAdminPage() {
           </div>
         </div>
       )}
-
-
 
       {/* Delete modal */}
       {isModalOpen && targetId && (
