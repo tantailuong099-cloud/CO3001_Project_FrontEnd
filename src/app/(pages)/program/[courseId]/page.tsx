@@ -2,9 +2,14 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import ClassGroupCard from "@/app/components/pages/card/ClassGroupCard";
+
+interface Tutor {
+  _id: string;
+  name: string;
+}
 
 interface Session {
   day: string;
@@ -92,6 +97,7 @@ export default function CourseGroupsPage() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<"STUDENT" | "TUTOR" | "ADMIN" | null>(null);
   const [studentEmail, setStudentEmail] = useState<string | null>(null);
+  const [tutorList, setTutorList] = useState<Tutor[]>([]);
 
   // FETCH DATA
   useEffect(() => {
@@ -120,6 +126,12 @@ export default function CourseGroupsPage() {
         const userJson = await userRes.json();
         setUserRole(userJson.role?.toLowerCase());
         setStudentEmail(userJson.email);   // <-- save email here
+
+        const tutorRes = await fetch(`${BACKEND_URL}/api/user/role/Tutor`, {
+          credentials: "include",
+        });
+        const tutorJson = await tutorRes.json();
+        setTutorList(Array.isArray(tutorJson) ? tutorJson : tutorJson.data || []);
       } catch (err) {
         console.error("Failed to load course data:", err);
       } finally {
@@ -129,6 +141,13 @@ export default function CourseGroupsPage() {
 
     loadData();
   }, [courseId, BACKEND_URL]);
+  
+  // useMemo MUST be here (before ANY conditional return)
+  const tutorNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    tutorList.forEach(t => { map[t._id] = t.name });
+    return map;
+  }, [tutorList]);
 
   if (loading || !course) {
     return (
@@ -137,6 +156,8 @@ export default function CourseGroupsPage() {
       </div>
     );
   }
+
+
 
   // Normalize class groups
   const groupList = Array.from(
@@ -303,7 +324,7 @@ export default function CourseGroupsPage() {
             <ClassGroupCard
               key={group}
               group={group}
-              tutor={cardData.tutor}
+              tutor={cardData.tutor ? tutorNameMap[cardData.tutor] || cardData.tutor : null}
               sessions={cardData.sessions}
               //students={cardData.students}
               registeredCount={cardData.registeredCount}

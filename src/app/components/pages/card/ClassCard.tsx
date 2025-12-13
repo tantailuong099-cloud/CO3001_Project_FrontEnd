@@ -12,6 +12,11 @@ interface Course {
   classCodes: string[];
 }
 
+interface Tutor {
+  _id: string;
+  name: string;
+}
+
 interface CourseCardProps {
   course: Course;
 }

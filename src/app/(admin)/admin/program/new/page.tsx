@@ -243,8 +243,6 @@ export default function AddNewCoursePage() {
         status: "upcoming",
       };
       
-      console.log("🔵 SENDING PAYLOAD:", JSON.stringify(payload, null, 2));
-
       const res = await fetch(`${BACKEND_URL}/api/course/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -252,11 +250,7 @@ export default function AddNewCoursePage() {
         body: JSON.stringify(payload),
       });
 
-      console.log("🟠 BACKEND RESPONSE STATUS:", res.status);
-      console.log("🟠 BACKEND RESPONSE TEXT:", await res.text());
-
       if (!res.ok) throw new Error("Failed to create course");
-
       alert("Course and class groups created successfully!");
       router.push("/admin/program");
 

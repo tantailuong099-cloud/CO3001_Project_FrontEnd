@@ -21,6 +21,7 @@ interface Course {
   courseEnd: string;
   status: string; 
   tutors: string[] | string; 
+  registrations?: Registration[];
 }
 
 interface Tutor {
@@ -55,7 +56,7 @@ export default function ProgramPage() {
       try {
         const [courseRes, tutorRes] = await Promise.all([
           fetch(`${BACKEND_URL}/api/course`, { credentials: "include" }),
-          fetch(`${BACKEND_URL}/api/user/Tutor`, { credentials: "include" }),
+          fetch(`${BACKEND_URL}/api/user/role/Tutor`, { credentials: "include" }),
         ]);
 
         const cJson = await courseRes.json();
@@ -76,6 +77,7 @@ export default function ProgramPage() {
 
             return {
               ...course,
+              registrations: regs,
               classGroups: regs.map((r: Registration) => r.classGroup) // 👈 true source of groups
             };
           })
@@ -195,13 +197,15 @@ export default function ProgramPage() {
         <div className="grid grid-cols-1 gap-8">
           {filteredCourses.map((course) => {
             // ---- Tutor normalization & ID -> name mapping ----
-            const parsed = Array.isArray(course.tutors)
-              ? course.tutors
-              : course.tutors
-              ? course.tutors.replace(/[\[\]']/g, "").split(",").map((x) => x.trim())
-              : [];
+            const tutorIds: string[] = Array.from(
+              new Set(
+                course.registrations
+                  ?.map((r: Registration) => r.tutor)
+                  .filter((id): id is string => typeof id === "string" && id.trim() !== "")
+              )
+            );
 
-            const resolvedTutors = parsed.map((t) => tutorNameMap[t] || t);
+            const resolvedTutors = tutorIds.map((id) => tutorNameMap[id] || id);
 
             return (
               <ProgramCourseCard

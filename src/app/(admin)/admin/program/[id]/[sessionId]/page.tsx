@@ -46,6 +46,25 @@ async function getClassDetail(courseCode: string, classGroup: string) {
       ),
     ]);
 
+    // Fetch tutor list
+    const tutorRes = await fetch(`${API_URL}/api/user/role/Tutor`, {
+      credentials: "include",
+      headers: { Cookie: cookie },
+    });
+    const tutorJson = await tutorRes.json();
+
+    const tutorList = Array.isArray(tutorJson)
+      ? tutorJson
+      : Array.isArray(tutorJson.data)
+        ? tutorJson.data
+        : [];
+
+    // Build map: { tutorId → name }
+    const tutorMap: Record<string, string> = {};
+    tutorList.forEach((t: any) => {
+      tutorMap[String(t._id)] = t.name;
+    });
+
     if (!courseRes.ok || !regRes.ok) return null;
 
     const courseArray = await courseRes.json();
@@ -66,7 +85,7 @@ async function getClassDetail(courseCode: string, classGroup: string) {
       courseCapacity: course.capacity,
 
       classGroup: registration.classGroup,
-      tutor: registration.tutor,
+      tutor: registration.tutor ? tutorMap[String(registration.tutor)] || registration.tutor : "Unassigned",
       registeredCount: registration.registeredCount,
       classCapacity: registration.capacity,
       status: registration.status,
